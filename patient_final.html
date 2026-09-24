@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilan Prévention — Pharmacie Alésia-Plaisance</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #0B5394;
+    --secondary: #38761D;
+    --accent: #E69138;
+    --alert: #CC0000;
+    --bg-light: #F3F6FA;
+    --bg-green: #EAF4E5;
+    --bg-blue: #E6F3FF;
+    --bg-red: #F4CCCC;
+    --text: #2C3E50;
+    --grey: #7F8C8D;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: var(--text);
+    padding: 15px;
+  }
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, #1a73e8 100%);
+    color: white;
+    padding: 25px 20px;
+    text-align: center;
+  }
+  header h1 { font-size: 22px; margin-bottom: 6px; font-weight: 700; }
+  header p { opacity: 0.9; font-size: 13px; }
+  main { padding: 25px 20px; }
+  
+  .step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .step-dot {
+    padding: 5px 12px;
+    background: var(--bg-light);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--grey);
+    font-weight: 600;
+  }
+  .step-dot.active { background: var(--primary); color: white; }
+  .step-dot.completed { background: var(--secondary); color: white; }
+  
+  .home-screen h2 {
+    color: var(--primary);
+    margin-bottom: 12px;
+    font-size: 18px;
+    text-align: center;
+  }
+  .intro-text {
+    background: var(--bg-blue);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text);
+    border-left: 4px solid var(--primary);
+  }
+  .age-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+  }
+  .age-card {
+    background: var(--bg-light);
+    border: 3px solid transparent;
+    border-radius: 12px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .age-card:active { transform: scale(0.97); }
+  .age-card.color-1825 { border-color: #F1C232; background: #FFF9E6; }
+  .age-card.color-4550 { border-color: #6AA84F; background: #E6F4E6; }
+  .age-card.color-6065 { border-color: #C27BA0; background: #F9E6F0; }
+  .age-card.color-7075 { border-color: #E69138; background: #FDEEDC; }
+  .age-card .icon { font-size: 30px; display: block; margin-bottom: 8px; }
+  .age-card .description { font-size: 11px; color: var(--grey); margin-top: 6px; font-weight: 400; }
+  
+  .question-screen, .review-screen, .confirmation-screen { display: none; }
+  
+  .progress-bar {
+    background: var(--bg-light);
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: var(--secondary);
+    height: 100%;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  
+  .section-title {
+    background: var(--primary);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 20px 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .section-title:first-child { margin-top: 0; }
+  
+  .question {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: var(--bg-light);
+    border-radius: 8px;
+  }
+  .question label.q-label {
+    display: block;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 13.5px;
+  }
+  .question .required { color: var(--alert); }
+  
+  .options { display: flex; flex-direction: column; gap: 6px; }
+  .option {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+  }
+  .option:active { background: var(--bg-light); }
+  .option input { margin-right: 10px; width: 18px; height: 18px; }
+  .option.selected {
+    border-color: var(--primary);
+    background: #E8F0FE;
+  }
+  .option.selected span { font-weight: 600; color: var(--primary); }
+  
+  .question input[type="text"],
+  .question input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .question input:focus { outline: none; border-color: var(--primary); }
+  .question textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    min-height: 70px;
+    resize: vertical;
+  }
+  
+  .review-header {
+    background: var(--bg-blue);
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    text-align: center;
+    border-left: 5px solid var(--primary);
+  }
+  .review-header h2 { color: var(--primary); font-size: 20px; margin-bottom: 6px; }
+  .review-header p { color: var(--text); font-size: 13px; }
+  
+  .review-section {
+    margin-bottom: 15px;
+    background: var(--bg-light);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .review-section-title {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 10px;
+    font-size: 13px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .review-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px dashed #ddd;
+    font-size: 12.5px;
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-item .q-text { color: var(--grey); flex: 1; padding-right: 10px; }
+  .review-item .a-text {
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+    min-width: 40%;
+  }
+  .review-item.empty .a-text {
+    color: #ccc;
+    font-style: italic;
+    font-weight: normal;
+  }
+  
+  .confirmation-header {
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--bg-green);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid var(--secondary);
+  }
+  .confirmation-header .check-icon {
+    font-size: 60px;
+    display: block;
+    margin-bottom: 15px;
+  }
+  .confirmation-header h2 {
+    color: var(--secondary);
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  .confirmation-header p {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .name-input {
+    background: var(--bg-blue);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary);
+  }
+  .name-input label {
+    display: block;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .name-input input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .name-input .hint {
+    font-size: 11px;
+    color: var(--grey);
+    margin-top: 5px;
+    font-style: italic;
+  }
+  
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 2px solid var(--bg-light);
+  }
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--secondary);
+    color: white;
+    flex: 1;
+  }
+  .btn-primary:hover { background: #2d5f16; }
+  .btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: var(--bg-light);
+    color: var(--text);
+    border: 2px solid #ddd;
+  }
+  
+  .required-alert {
+    background: var(--bg-red);
+    color: var(--alert);
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    display: none;
+  }
+  
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .spinner {
+    border: 4px solid var(--bg-light);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-msg {
+    background: var(--bg-red);
+    color: var(--alert);
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 13px;
+    display: none;
+  }
+  
+  @media (max-width: 500px) {
+    .age-grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 18px; }
+    .buttons { flex-direction: column; }
+    .btn-primary, .btn-secondary { width: 100%; }
+    .review-item { flex-direction: column; gap: 3px; }
+    .review-item .a-text { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🏥 Bilan Prévention</h1>
+    <p>Pharmacie Alésia-Plaisance • Dr Mehdi Laroui</p>
+  </header>
+  
+  <main>
+    <!-- ============== ACCUEIL ============== -->
+    <div id="home-screen" class="home-screen">
+      <div class="intro-text">
+        <strong>Bienvenue !</strong><br><br>
+        Ce questionnaire permet de préparer votre <strong>Bilan Prévention</strong> avec votre pharmacien.<br>
+        Il est confidentiel, prend <strong>5 minutes</strong>, et vos réponses seront transmises au pharmacien qui vous recevra ensuite pour un entretien personnalisé.
+      </div>
+      
+      <h2>Sélectionnez votre tranche d'âge</h2>
+      <div class="age-grid">
+        <div class="age-card color-1825" onclick="startQuestionnaire('18-25')">
+          <span class="icon">👤</span>
+          18-25 ans
+          <div class="description">Vaccins • Santé sexuelle</div>
+        </div>
+        <div class="age-card color-4550" onclick="startQuestionnaire('45-50')">
+          <span class="icon">👥</span>
+          45-50 ans
+          <div class="description">Ménopause • Dépistages</div>
+        </div>
+        <div class="age-card color-6065" onclick="startQuestionnaire('60-65')">
+          <span class="icon">👨‍🦳</span>
+          60-65 ans
+          <div class="description">Vaccins • Retraite</div>
+        </div>
+        <div class="age-card color-7075" onclick="startQuestionnaire('70-75')">
+          <span class="icon">🧓</span>
+          70-75 ans
+          <div class="description">Autonomie • Chutes</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ============== QUESTIONNAIRE ============== -->
+    <div id="question-screen" class="question-screen">
+      <div class="step-indicator">
+        <div class="step-dot active">1. Questionnaire</div>
+        <div class="step-dot">2. Vérification</div>
+        <div class="step-dot">3. Envoi</div>
+      </div>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <div id="required-alert" class="required-alert">
+        ⚠ Merci de répondre aux questions obligatoires (Sexe et Âge).
+      </div>
+      <form id="questionnaire-form"></form>
+      <div class="buttons">
+        <button type="button" class="btn-secondary" onclick="retourAccueil()">← Retour</button>
+        <button type="button" class="btn-primary" onclick="allerAuRecap()">Vérifier →</button>
+      </div>
+    </div>
+    
+    <!-- ============== RÉCAPITULATIF ============== -->
+    <div id="review-screen" class="review-screen">
+      <div class="step-indicator">
+        <div class="step-dot completed">1. ✓ Questionnaire</div>
+        <div class="step-dot active">2. Vérification</div>
+        <div class="step-dot">3. Envoi</div>
+      </div>
+      
+      <div class="review-header">
+        <h2>📋 Vérifiez vos réponses</h2>
+        <p>Relisez-les. Vous pouvez revenir en arrière pour modifier avant d'envoyer.</p>
+      </div>
+      
+      <div class="name-input">
+        <label>👤 Vos initiales ou nom (pour identification par le pharmacien)</label>
+        <input type="text" id="patient-name" placeholder="Ex : ML ou Dupont" maxlength="30">
+        <div class="hint">Ces informations permettent au pharmacien de retrouver votre bilan.</div>
+      </div>
+      
+      <div id="review-content"></div>
+      
+      <div id="error-msg" class="error-msg"></div>
+      
+      <div class="buttons">
+        <button type="button" class="btn-secondary" onclick="retourAuQuestionnaire()">← Modifier</button>
+        <button type="button" class="btn-primary" id="btn-envoyer" onclick="envoyerReponses()">✅ Envoyer au pharmacien</button>
+      </div>
+    </div>
+    
+    <!-- ============== CHARGEMENT ============== -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p style="color: var(--grey);">Envoi en cours...</p>
+    </div>
+    
+    <!-- ============== CONFIRMATION ============== -->
+    <div id="confirmation-screen" class="confirmation-screen">
+      <div class="step-indicator">
+        <div class="step-dot completed">1. ✓ Questionnaire</div>
+        <div class="step-dot completed">2. ✓ Vérification</div>
+        <div class="step-dot completed">3. ✓ Envoyé</div>
+      </div>
+      
+      <div class="confirmation-header">
+        <span class="check-icon">✅</span>
+        <h2>Merci !</h2>
+        <p>
+          Vos réponses ont bien été transmises au pharmacien.<br><br>
+          <strong>Présentez-vous au comptoir de la pharmacie</strong> pour votre entretien personnalisé.<br><br>
+          <em>Vous pouvez fermer cette page.</em>
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ==================== CONFIGURATION ====================
+// ⚠️ REMPLACE PAR L'URL DE TON GOOGLE APPS SCRIPT (voir instructions)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4aGgi2oDZzUOkWvyvv1yThTpFsEdgXfiH2L8trdh_AqnKdAfaGOhIK0pCe5J_RDJZ/exec";
+
+// ==================== DONNÉES DES QUESTIONNAIRES ====================
+const QUESTIONNAIRES = {
+  '18-25': {
+    titre: 'Bilan 18-25 ans',
+    sections: [
+      { titre: '📍 Vous', questions: [
+        { id: 'sexe', label: 'Vous êtes :', type: 'radio', required: true, options: ['Une femme', 'Un homme'] },
+        { id: 'age', label: 'Âge', type: 'number', required: true },
+        { id: 'situation', label: 'Situation :', type: 'radio', options: ['Études', 'Emploi', 'Recherche emploi', 'Étude-emploi', 'Autre'] },
+        { id: 'traitement', label: 'Traitement en cours ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'taille', label: 'Taille (m)', type: 'text' },
+        { id: 'poids', label: 'Poids (kg)', type: 'text' },
+      ]},
+      { titre: '💉 Vaccins et santé sexuelle', questions: [
+        { id: 'vaccins', label: 'À jour vaccins (DTP...) ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'hpv', label: 'Vacciné(e) HPV ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'frottis', label: 'Frottis col utérus (si 25 ans) ?', type: 'radio', options: ['Oui', 'Non', 'Non concerné(e)'] },
+        { id: 'contraception', label: 'Contraception ?', type: 'radio', options: ['Oui', 'Non', 'Non concerné(e)'] },
+        { id: 'regles', label: 'Douleurs règles ?', type: 'radio', options: ['Oui', 'Non', 'Non concerné(e)'] },
+        { id: 'ist', label: 'Déjà fait dépistage IST ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'risque_sexuel', label: 'Situations à risque ?', type: 'radio', options: ['Plusieurs partenaires', 'Arrêt préservatif', 'Partenaire diagnostiqué IST', 'Non concerné(e)'] },
+      ]},
+      { titre: '🚬 Addictions', questions: [
+        { id: 'alcool', label: 'Alcool :', type: 'radio', options: ['Plus de 2 verres/jour', 'Plus de 10 verres/semaine', 'Au moins 2 jours sans/semaine', 'Je ne bois pas'] },
+        { id: 'binge', label: 'Binge drinking ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'tabac', label: 'Fumez / vapotez ?', type: 'radio', options: ['Oui je fume', 'Oui je vapote', 'Non', 'J\'ai arrêté'] },
+        { id: 'sevrage', label: 'Envie d\'arrêter ?', type: 'radio', options: ['Oui rapidement', 'Oui plus tard', 'Non', 'Non concerné(e)'] },
+        { id: 'substances', label: 'Autres substances ?', type: 'radio', options: ['Cannabis', 'Autres drogues', 'Protoxyde d\'azote', 'Non'] },
+      ]},
+      { titre: '🧠 Santé mentale', questions: [
+        { id: 'sommeil', label: 'Problèmes sommeil ?', type: 'radio', options: ['Oui souvent', 'Oui parfois', 'Non', 'Somnifères'] },
+        { id: 'anxiete', label: 'Anxiété récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'tristesse', label: 'Tristesse récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'idees_noires', label: 'Idées noires ?', type: 'radio', options: ['Oui idées noires', 'Oui tentative(s)', 'Non'] },
+        { id: 'violences', label: 'Victime de violences ?', type: 'radio', options: ['Oui', 'Non', 'Je préfère ne pas répondre'] },
+      ]},
+      { titre: '🥗 Activité et alimentation', questions: [
+        { id: 'activite', label: 'Activité physique 30min/semaine ?', type: 'radio', options: ['Jamais', '1-2 fois', '3-4 fois', '5-7 fois'] },
+        { id: 'fruits', label: 'Fruits/légumes :', type: 'radio', options: ['≥5 portions/jour', '1-4 portions/jour', 'De temps en temps', 'Rarement', 'Jamais'] },
+        { id: 'ecrans', label: 'Temps écran hors travail :', type: 'radio', options: ['<1h', '1-2h', '2-4h', '>4h'] },
+      ]},
+      { titre: '📝 Remarques', questions: [
+        { id: 'remarques', label: 'Autres remarques (optionnel)', type: 'textarea' },
+      ]}
+    ]
+  },
+  '45-50': {
+    titre: 'Bilan 45-50 ans',
+    sections: [
+      { titre: '📍 Vous', questions: [
+        { id: 'sexe', label: 'Vous êtes :', type: 'radio', required: true, options: ['Une femme', 'Un homme'] },
+        { id: 'age', label: 'Âge', type: 'number', required: true },
+        { id: 'aidant', label: 'Rôle d\'aidant ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'conditions', label: 'Conditions travail/vie difficiles ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'traitement', label: 'Traitement en cours ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'taille', label: 'Taille (m)', type: 'text' },
+        { id: 'poids', label: 'Poids (kg)', type: 'text' },
+      ]},
+      { titre: '🩺 État de santé', questions: [
+        { id: 'maladies', label: 'Maladies ?', type: 'radio', options: ['Hypertension', 'Diabète', 'Cholestérol', 'Cardio', 'Cancers', 'Respiratoires', 'Aucune'] },
+        { id: 'antecedents', label: 'Antécédents familiaux ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'poids_var', label: 'Variation poids récente ?', type: 'radio', options: ['Amaigrissement', 'Prise poids', 'Non'] },
+        { id: 'toux', label: 'Toux fréquente ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'essouffle', label: 'Plus essoufflé ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'apnee', label: 'Ronflements/pauses respiratoires ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'menopause', label: '[Femmes] Ménopause à aborder ?', type: 'radio', options: ['Oui', 'Non', 'Déjà suivie', 'Non concerné(e)'] },
+        { id: 'dentiste', label: 'Dentiste 12 derniers mois ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'vue', label: 'Vue moins bonne ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'audition', label: 'Audition en baisse ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'douleurs', label: 'Douleurs dos/cou/épaules ?', type: 'radio', options: ['Oui', 'Non'] },
+      ]},
+      { titre: '💉 Vaccins et dépistages', questions: [
+        { id: 'vaccins', label: 'À jour vaccins ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'colorectal', label: 'Dépistage colorectal ?', type: 'radio', options: ['<2 ans', '>2 ans', 'Jamais', 'Je ne sais pas'] },
+        { id: 'mammo', label: '[Femmes] Mammographie ?', type: 'radio', options: ['<2 ans', '>2 ans', 'Jamais', 'Non concerné(e)'] },
+        { id: 'frottis', label: '[Femmes] Frottis/HPV ?', type: 'radio', options: ['<5 ans', '>5 ans', 'Jamais', 'Non concerné(e)'] },
+      ]},
+      { titre: '🥗 Activité et alimentation', questions: [
+        { id: 'activite', label: 'Activité 30min/semaine ?', type: 'radio', options: ['Jamais', '1-2 fois', '3-4 fois', '5-7 fois'] },
+        { id: 'fruits', label: 'Fruits/légumes :', type: 'radio', options: ['≥5 portions/jour', '1-4 portions/jour', 'De temps en temps', 'Rarement', 'Jamais'] },
+        { id: 'sedentaire', label: 'Temps assis/jour :', type: 'radio', options: ['<2h', '2-4h', '4-7h', '>7h'] },
+      ]},
+      { titre: '🚬 Addictions', questions: [
+        { id: 'alcool', label: 'Alcool :', type: 'radio', options: ['Plus de 2 verres/jour', 'Plus de 10 verres/semaine', 'Au moins 2 jours sans/semaine', 'Je ne bois pas'] },
+        { id: 'tabac', label: 'Fumez ?', type: 'radio', options: ['Oui je fume', 'Oui je vapote', 'Non', 'J\'ai arrêté'] },
+        { id: 'sevrage', label: 'Envie d\'arrêter ?', type: 'radio', options: ['Oui rapidement', 'Oui plus tard', 'Non', 'Non concerné(e)'] },
+      ]},
+      { titre: '🧠 Santé mentale', questions: [
+        { id: 'sommeil', label: 'Sommeil ?', type: 'radio', options: ['Oui souvent', 'Oui parfois', 'Non', 'Somnifères'] },
+        { id: 'anxiete', label: 'Anxiété récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'tristesse', label: 'Tristesse récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'idees_noires', label: 'Idées noires ?', type: 'radio', options: ['Oui idées noires', 'Oui tentative(s)', 'Non'] },
+        { id: 'violences', label: 'Violences ?', type: 'radio', options: ['Oui', 'Non', 'Je préfère ne pas répondre'] },
+      ]},
+      { titre: '📝 Remarques', questions: [
+        { id: 'remarques', label: 'Autres remarques (optionnel)', type: 'textarea' },
+      ]}
+    ]
+  },
+  '60-65': {
+    titre: 'Bilan 60-65 ans',
+    sections: [
+      { titre: '📍 Vous', questions: [
+        { id: 'sexe', label: 'Vous êtes :', type: 'radio', required: true, options: ['Une femme', 'Un homme'] },
+        { id: 'age', label: 'Âge', type: 'number', required: true },
+        { id: 'aidant', label: 'Rôle d\'aidant ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'entourage', label: 'Contacts proches ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'traitement', label: 'Traitement en cours ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'medicaments', label: 'Nombre médicaments/jour :', type: 'radio', options: ['Aucun', '1-3', '4-6', '>6'] },
+        { id: 'taille', label: 'Taille (m)', type: 'text' },
+        { id: 'poids', label: 'Poids (kg)', type: 'text' },
+      ]},
+      { titre: '🩺 État de santé', questions: [
+        { id: 'maladies', label: 'Maladies ?', type: 'radio', options: ['Hypertension', 'Diabète', 'Cholestérol', 'Cardio', 'Cancers', 'BPCO', 'Arthrose', 'Ostéoporose', 'Aucune'] },
+        { id: 'antecedents', label: 'Antécédents familiaux ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'poids_var', label: 'Variation poids ?', type: 'radio', options: ['Amaigrissement', 'Prise poids', 'Non'] },
+        { id: 'oedemes', label: 'Gonflements jambes ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'poitrine', label: 'Douleurs poitrine effort ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'toux_essouffle', label: 'Toux/essoufflement ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'apnee', label: 'Ronflements/pauses respi ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'dentiste', label: 'Dentiste 12 derniers mois ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'vue', label: 'Voir moins bien ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'audition', label: 'Entendre moins bien ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'urinaires', label: 'Troubles urinaires ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'douleurs', label: 'Douleurs articulaires ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'memoire', label: 'Oublier des choses ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'quotidien', label: 'Difficultés quotidien ?', type: 'radio', options: ['Oui', 'Non'] },
+      ]},
+      { titre: '💉 Vaccins et dépistages', questions: [
+        { id: 'vaccins', label: 'À jour vaccins ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'grippe', label: 'Vaccin grippe cette saison ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'zona', label: 'Vaccin zona ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'colorectal', label: 'Dépistage colorectal ?', type: 'radio', options: ['<2 ans', '>2 ans', 'Jamais', 'Je ne sais pas'] },
+        { id: 'mammo', label: '[Femmes] Mammographie ?', type: 'radio', options: ['<2 ans', '>2 ans', 'Jamais', 'Non concerné(e)'] },
+      ]},
+      { titre: '🥗 Activité et alimentation', questions: [
+        { id: 'activite', label: 'Activité 30min/semaine ?', type: 'radio', options: ['Jamais', '1-2 fois', '3-4 fois', '5-7 fois'] },
+        { id: 'fruits', label: 'Fruits/légumes :', type: 'radio', options: ['≥5 portions/jour', '1-4 portions/jour', 'De temps en temps', 'Rarement', 'Jamais'] },
+      ]},
+      { titre: '🧠 Santé mentale', questions: [
+        { id: 'retraite', label: 'Regard sur la retraite ?', type: 'radio', options: ['Très positif', 'Plutôt positif', 'Plutôt négatif', 'Très négatif'] },
+        { id: 'sommeil', label: 'Sommeil ?', type: 'radio', options: ['Oui souvent', 'Oui parfois', 'Non', 'Somnifères'] },
+        { id: 'anxiete', label: 'Anxiété récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'tristesse', label: 'Tristesse récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'idees_noires', label: 'Idées noires ?', type: 'radio', options: ['Oui idées noires', 'Oui tentative(s)', 'Non'] },
+        { id: 'violences', label: 'Violences ?', type: 'radio', options: ['Oui', 'Non', 'Je préfère ne pas répondre'] },
+        { id: 'alcool', label: 'Alcool :', type: 'radio', options: ['Plus de 2 verres/jour', 'Plus de 10 verres/semaine', 'Au moins 2 jours sans/semaine', 'Je ne bois pas'] },
+        { id: 'tabac', label: 'Fumez ?', type: 'radio', options: ['Oui je fume', 'Oui je vapote', 'Non', 'J\'ai arrêté'] },
+      ]},
+      { titre: '📝 Remarques', questions: [
+        { id: 'remarques', label: 'Autres remarques (optionnel)', type: 'textarea' },
+      ]}
+    ]
+  },
+  '70-75': {
+    titre: 'Bilan 70-75 ans',
+    sections: [
+      { titre: '📍 Vous', questions: [
+        { id: 'sexe', label: 'Vous êtes :', type: 'radio', required: true, options: ['Une femme', 'Un homme'] },
+        { id: 'age', label: 'Âge', type: 'number', required: true },
+        { id: 'seul', label: 'Vivez-vous seul(e) ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'entourage', label: 'Contacts proches ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'traitement', label: 'Traitement en cours ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'medicaments', label: 'Nombre médicaments/jour :', type: 'radio', options: ['Aucun', '1-3', '4-6', '>6'] },
+        { id: 'taille', label: 'Taille (m)', type: 'text' },
+        { id: 'poids', label: 'Poids (kg)', type: 'text' },
+      ]},
+      { titre: '🩺 État de santé', questions: [
+        { id: 'maladies', label: 'Maladies ?', type: 'radio', options: ['Hypertension', 'Diabète', 'Cholestérol', 'Cardio', 'Cancers', 'BPCO', 'Arthrose', 'Ostéoporose', 'Aucune'] },
+        { id: 'poids_var', label: 'Variation poids ?', type: 'radio', options: ['Amaigrissement', 'Prise poids', 'Non'] },
+        { id: 'poitrine', label: 'Douleurs poitrine effort ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'toux_essouffle', label: 'Toux/essoufflement ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'vue', label: 'Voir moins bien ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'audition', label: 'Entendre moins bien ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'urinaires', label: 'Troubles urinaires ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'douleurs', label: 'Douleurs articulaires ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'memoire', label: 'Oublier des choses ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'chute', label: 'Chute 12 derniers mois ?', type: 'radio', options: ['Oui 1 chute', 'Oui plusieurs', 'Non'] },
+        { id: 'quotidien', label: 'Difficultés gestes quotidiens ?', type: 'radio', options: ['Oui', 'Non'] },
+      ]},
+      { titre: '🏠 Environnement chutes', questions: [
+        { id: 'logement_acces', label: 'Logement facile d\'accès ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'amenagements', label: 'Aménagements anti-chutes ?', type: 'radio', options: ['Douche italienne', 'Barres appui', 'Tapis antidérapants', 'WC surélevé', 'Aucun'] },
+        { id: 'aide', label: 'Aide déplacements ?', type: 'radio', options: ['Canne', 'Déambulateur', 'Fauteuil roulant', 'Aucune'] },
+        { id: 'teleassistance', label: 'Téléassistance ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+      ]},
+      { titre: '🥗 Activité et alimentation', questions: [
+        { id: 'activite', label: 'Activité marche/jardinage ?', type: 'radio', options: ['Jamais', '1-2 fois', '3-4 fois', '5-7 fois'] },
+        { id: 'fruits', label: 'Fruits/légumes :', type: 'radio', options: ['≥5 portions/jour', '1-4 portions/jour', 'De temps en temps', 'Rarement', 'Jamais'] },
+        { id: 'appetit', label: 'Perte d\'appétit ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'laitiers', label: 'Produits laitiers ?', type: 'radio', options: ['Oui plusieurs', 'Oui un', 'Non'] },
+        { id: 'proteines', label: 'Viande/poisson/œufs ?', type: 'radio', options: ['Chaque repas', '1 fois/jour', 'Rarement', 'Jamais'] },
+      ]},
+      { titre: '🧠 Vaccins et santé mentale', questions: [
+        { id: 'vaccins', label: 'À jour vaccins ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'grippe', label: 'Vaccin grippe cette saison ?', type: 'radio', options: ['Oui', 'Non'] },
+        { id: 'zona', label: 'Vaccin zona ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'pneumocoque', label: 'Vaccin pneumocoque ?', type: 'radio', options: ['Oui', 'Non', 'Je ne sais pas'] },
+        { id: 'retraite', label: 'Regard sur cette période ?', type: 'radio', options: ['Très positif', 'Plutôt positif', 'Plutôt négatif', 'Très négatif'] },
+        { id: 'sommeil', label: 'Sommeil ?', type: 'radio', options: ['Oui souvent', 'Oui parfois', 'Non', 'Somnifères'] },
+        { id: 'anxiete', label: 'Anxiété récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'tristesse', label: 'Tristesse récente ?', type: 'radio', options: ['Jamais', 'Plusieurs jours', 'Plus de 7 jours', 'Presque tous les jours'] },
+        { id: 'idees_noires', label: 'Idées noires ?', type: 'radio', options: ['Oui idées noires', 'Oui tentative(s)', 'Non'] },
+        { id: 'violences', label: 'Violences ?', type: 'radio', options: ['Oui', 'Non', 'Je préfère ne pas répondre'] },
+        { id: 'alcool', label: 'Alcool :', type: 'radio', options: ['Plus de 2 verres/jour', 'Plus de 10 verres/semaine', 'Au moins 2 jours sans/semaine', 'Je ne bois pas'] },
+        { id: 'tabac', label: 'Fumez ?', type: 'radio', options: ['Oui', 'Non', 'J\'ai arrêté'] },
+      ]},
+      { titre: '📝 Remarques', questions: [
+        { id: 'remarques', label: 'Autres remarques (optionnel)', type: 'textarea' },
+      ]}
+    ]
+  }
+};
+
+// ==================== ÉTAT GLOBAL ====================
+let currentTranche = null;
+let currentAnswers = {};
+
+function afficherEcran(id) {
+  ['home-screen', 'question-screen', 'review-screen', 'loading', 'confirmation-screen'].forEach(s => {
+    document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+  });
+  window.scrollTo(0, 0);
+}
+
+function startQuestionnaire(tranche) {
+  currentTranche = tranche;
+  currentAnswers = {};
+  afficherEcran('question-screen');
+  renderQuestions();
+}
+
+function retourAccueil() {
+  currentTranche = null;
+  currentAnswers = {};
+  afficherEcran('home-screen');
+}
+
+function retourAuQuestionnaire() {
+  afficherEcran('question-screen');
+  renderQuestions();
+}
+
+function renderQuestions() {
+  const questionnaire = QUESTIONNAIRES[currentTranche];
+  const form = document.getElementById('questionnaire-form');
+  form.innerHTML = '';
+  
+  questionnaire.sections.forEach(section => {
+    const sectionTitle = document.createElement('div');
+    sectionTitle.className = 'section-title';
+    sectionTitle.textContent = section.titre;
+    form.appendChild(sectionTitle);
+    
+    section.questions.forEach(q => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'question';
+      qDiv.dataset.id = q.id;
+      
+      const label = document.createElement('label');
+      label.className = 'q-label';
+      label.innerHTML = q.label + (q.required ? ' <span class="required">*</span>' : '');
+      qDiv.appendChild(label);
+      
+      if (q.type === 'radio') {
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'options';
+        q.options.forEach(opt => {
+          const optLabel = document.createElement('label');
+          optLabel.className = 'option';
+          if (currentAnswers[q.id] === opt) optLabel.classList.add('selected');
+          const isChecked = currentAnswers[q.id] === opt ? 'checked' : '';
+          optLabel.innerHTML = `<input type="radio" name="${q.id}" value="${opt}" ${isChecked} onchange="handleChange('${q.id}', this.value)"><span>${opt}</span>`;
+          optionsDiv.appendChild(optLabel);
+        });
+        qDiv.appendChild(optionsDiv);
+      } else if (q.type === 'text' || q.type === 'number') {
+        const input = document.createElement('input');
+        input.type = q.type;
+        input.name = q.id;
+        input.value = currentAnswers[q.id] || '';
+        input.oninput = function() { handleChange(q.id, this.value); };
+        qDiv.appendChild(input);
+      } else if (q.type === 'textarea') {
+        const textarea = document.createElement('textarea');
+        textarea.name = q.id;
+        textarea.value = currentAnswers[q.id] || '';
+        textarea.oninput = function() { handleChange(q.id, this.value); };
+        qDiv.appendChild(textarea);
+      }
+      
+      form.appendChild(qDiv);
+    });
+  });
+  
+  updateProgress();
+}
+
+function handleChange(id, value) {
+  if (value === '' || value === null || value === undefined) {
+    delete currentAnswers[id];
+  } else {
+    currentAnswers[id] = value;
+  }
+  updateProgress();
+  document.querySelectorAll(`.question[data-id="${id}"] .option`).forEach(opt => {
+    const input = opt.querySelector('input');
+    if (input && input.value === value) opt.classList.add('selected');
+    else opt.classList.remove('selected');
+  });
+}
+
+function updateProgress() {
+  const questionnaire = QUESTIONNAIRES[currentTranche];
+  let total = 0;
+  questionnaire.sections.forEach(s => total += s.questions.length);
+  const filled = Object.keys(currentAnswers).length;
+  const percent = Math.min(100, Math.round((filled / total) * 100));
+  document.getElementById('progress-fill').style.width = percent + '%';
+}
+
+function allerAuRecap() {
+  if (!currentAnswers.sexe || !currentAnswers.age) {
+    document.getElementById('required-alert').style.display = 'block';
+    window.scrollTo(0, 0);
+    return;
+  }
+  document.getElementById('required-alert').style.display = 'none';
+  afficherEcran('review-screen');
+  renderReview();
+}
+
+function renderReview() {
+  const questionnaire = QUESTIONNAIRES[currentTranche];
+  const container = document.getElementById('review-content');
+  container.innerHTML = '';
+  
+  questionnaire.sections.forEach(section => {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'review-section';
+    
+    const title = document.createElement('div');
+    title.className = 'review-section-title';
+    title.textContent = section.titre;
+    sectionDiv.appendChild(title);
+    
+    section.questions.forEach(q => {
+      const item = document.createElement('div');
+      item.className = 'review-item';
+      
+      const qText = document.createElement('span');
+      qText.className = 'q-text';
+      qText.textContent = q.label;
+      
+      const aText = document.createElement('span');
+      aText.className = 'a-text';
+      
+      if (currentAnswers[q.id]) {
+        aText.textContent = currentAnswers[q.id];
+      } else {
+        aText.textContent = '— Non renseigné';
+        item.classList.add('empty');
+      }
+      
+      item.appendChild(qText);
+      item.appendChild(aText);
+      sectionDiv.appendChild(item);
+    });
+    
+    container.appendChild(sectionDiv);
+  });
+}
+
+// ==================== ENVOI EN LIGNE ====================
+async function envoyerReponses() {
+  const nom = document.getElementById('patient-name').value.trim();
+  const errorMsg = document.getElementById('error-msg');
+  const btnEnvoyer = document.getElementById('btn-envoyer');
+  
+  if (!nom) {
+    errorMsg.textContent = '⚠ Merci d\'indiquer vos initiales ou nom.';
+    errorMsg.style.display = 'block';
+    document.getElementById('patient-name').focus();
+    return;
+  }
+  
+  errorMsg.style.display = 'none';
+  btnEnvoyer.disabled = true;
+  
+  const data = {
+    patient_name: nom,
+    tranche: currentTranche,
+    date: new Date().toISOString(),
+    answers: currentAnswers
+  };
+  
+  afficherEcran('loading');
+  
+  try {
+    // Envoi vers Google Apps Script
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    // Note : mode 'no-cors' ne permet pas de lire la réponse mais l'envoi fonctionne
+    setTimeout(() => {
+      afficherEcran('confirmation-screen');
+    }, 1500);
+    
+  } catch (error) {
+    console.error('Erreur:', error);
+    btnEnvoyer.disabled = false;
+    afficherEcran('review-screen');
+    errorMsg.textContent = '❌ Erreur d\'envoi. Vérifiez votre connexion et réessayez.';
+    errorMsg.style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>

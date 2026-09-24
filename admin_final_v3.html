@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Bilan Prévention — Pharmacie Alésia-Plaisance</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #0B5394;
+    --secondary: #38761D;
+    --accent: #E69138;
+    --alert: #CC0000;
+    --bg-light: #F3F6FA;
+    --bg-green: #EAF4E5;
+    --bg-blue: #E6F3FF;
+    --bg-red: #F4CCCC;
+    --bg-orange: #FCEBD5;
+    --text: #2C3E50;
+    --grey: #7F8C8D;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    color: var(--text);
+    padding: 20px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, #1a73e8 100%);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 { font-size: 22px; font-weight: 700; }
+  header p { opacity: 0.9; font-size: 13px; }
+  header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  main { padding: 30px; }
+  
+  /* LOGIN SCREEN */
+  .login-screen { text-align: center; padding: 40px 20px; }
+  .login-icon { font-size: 60px; margin-bottom: 20px; display: block; }
+  .login-screen h2 { color: var(--primary); font-size: 24px; margin-bottom: 10px; }
+  .login-screen p { color: var(--grey); margin-bottom: 30px; }
+  .pin-input {
+    max-width: 300px;
+    margin: 0 auto 20px;
+  }
+  .pin-input input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    font-size: 24px;
+    text-align: center;
+    letter-spacing: 8px;
+    font-family: monospace;
+    font-weight: bold;
+  }
+  .pin-input input:focus { outline: none; border-color: var(--accent); background: #FFF9E6; }
+  .pin-error {
+    color: var(--alert);
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    display: none;
+  }
+  
+  /* DASHBOARD */
+  .dashboard { display: none; }
+  
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--bg-light);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .stats {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--bg-light);
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 100px;
+  }
+  .stat-card .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .stat-card .label {
+    font-size: 11px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+  .stat-card.pending { background: var(--bg-orange); }
+  .stat-card.pending .value { color: var(--accent); }
+  .stat-card.done { background: var(--bg-green); }
+  .stat-card.done .value { color: var(--secondary); }
+  
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .btn-refresh { background: var(--primary); color: white; }
+  .btn-refresh:hover { background: #094078; }
+  .btn-primary { background: var(--secondary); color: white; }
+  .btn-primary:hover { background: #2d5f16; }
+  .btn-secondary { background: var(--bg-light); color: var(--text); border: 2px solid #ddd; }
+  .btn-warning { background: var(--accent); color: white; }
+  .btn-danger { background: var(--alert); color: white; }
+  
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    background: var(--bg-light);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--grey);
+  }
+  .filter-btn.active {
+    background: var(--primary);
+    color: white;
+  }
+  
+  /* LIST */
+  .bilan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bilan-card {
+    background: var(--bg-light);
+    border-radius: 10px;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 5px solid var(--grey);
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .bilan-card:hover {
+    background: var(--bg-blue);
+    transform: translateX(3px);
+  }
+  .bilan-card.pending { border-left-color: var(--accent); }
+  .bilan-card.done { border-left-color: var(--secondary); opacity: 0.7; }
+  
+  .bilan-info { flex: 1; min-width: 200px; }
+  .bilan-info .nom { font-weight: 700; font-size: 15px; color: var(--primary); }
+  .bilan-info .details { font-size: 12px; color: var(--grey); margin-top: 3px; }
+  
+  .bilan-badge {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-1825 { background: #FFF9E6; color: #B87F00; border: 1px solid #F1C232; }
+  .badge-4550 { background: #E6F4E6; color: #2E6B14; border: 1px solid #6AA84F; }
+  .badge-6065 { background: #F9E6F0; color: #8B3B69; border: 1px solid #C27BA0; }
+  .badge-7075 { background: #FDEEDC; color: #A85F1A; border: 1px solid #E69138; }
+  
+  .statut-badge {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .statut-non-traite { background: var(--bg-orange); color: var(--accent); }
+  .statut-traite { background: var(--bg-green); color: var(--secondary); }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--grey);
+  }
+  .empty-state .icon { font-size: 60px; margin-bottom: 15px; }
+  
+  /* MODAL DETAIL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; }
+  .modal-content {
+    background: white;
+    border-radius: 15px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    margin: 20px 0;
+  }
+  .modal-header {
+    background: var(--primary);
+    color: white;
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .modal-header h2 { font-size: 20px; }
+  .modal-close {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  .modal-body { padding: 25px; }
+  .modal-footer {
+    padding: 15px 25px;
+    background: var(--bg-light);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .result-card {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    border-left: 5px solid;
+  }
+  .result-card h3 { font-size: 15px; margin-bottom: 8px; font-weight: 700; }
+  .result-card ul { margin-left: 20px; line-height: 1.6; }
+  .result-card li { margin-bottom: 5px; font-size: 13px; }
+  
+  .card-alert { background: var(--bg-red); border-color: var(--alert); }
+  .card-alert h3 { color: var(--alert); }
+  .card-actes { background: var(--bg-blue); border-color: var(--primary); }
+  .card-actes h3 { color: var(--primary); }
+  .card-produits { background: var(--bg-green); border-color: var(--secondary); }
+  .card-produits h3 { color: var(--secondary); }
+  .card-orientations { background: var(--bg-orange); border-color: var(--accent); }
+  .card-orientations h3 { color: var(--accent); }
+  .card-info { background: var(--bg-light); border-color: var(--grey); }
+  
+  .review-section {
+    margin-bottom: 12px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .review-section-title {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+    font-size: 13px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .review-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed #ddd;
+    font-size: 12.5px;
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-item .q-text { color: var(--grey); flex: 1; padding-right: 10px; }
+  .review-item .a-text { color: var(--text); font-weight: 600; text-align: right; }
+  
+  .loading {
+    text-align: center;
+    padding: 40px;
+  }
+  .spinner {
+    border: 4px solid var(--bg-light);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  @media print {
+    body { background: white; padding: 0; }
+    .container, header, .toolbar, .filters, .bilan-list, .modal-header, .modal-footer { display: none !important; }
+    .modal-overlay { position: static; background: white; padding: 0; }
+    .modal-overlay.active { display: block; }
+    .modal-content { box-shadow: none; max-width: 100%; }
+    .modal-body { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>🏥 Admin — Bilan Prévention</h1>
+      <p>Pharmacie Alésia-Plaisance • Dr Mehdi Laroui</p>
+    </div>
+    <div class="badge" id="header-badge" style="display:none">🔓 Connecté</div>
+  </header>
+  
+  <main>
+    <!-- LOGIN -->
+    <div id="login-screen" class="login-screen">
+      <span class="login-icon">🔒</span>
+      <h2>Espace pharmacien</h2>
+      <p>Entrez le code d'accès pour consulter les bilans reçus</p>
+      <div class="pin-input">
+        <input type="password" id="pin-code" maxlength="5" pattern="[0-9]*" inputmode="numeric" placeholder="•••••" autocomplete="off">
+        <div id="pin-error" class="pin-error">❌ Code incorrect. Réessayez.</div>
+      </div>
+      <button class="btn btn-refresh" onclick="verifierPin()">🔓 Accéder</button>
+    </div>
+    
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="dashboard">
+      <div class="toolbar">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="value" id="stat-total">0</div>
+            <div class="label">Total</div>
+          </div>
+          <div class="stat-card pending">
+            <div class="value" id="stat-pending">0</div>
+            <div class="label">À traiter</div>
+          </div>
+          <div class="stat-card done">
+            <div class="value" id="stat-done">0</div>
+            <div class="label">Traités</div>
+          </div>
+        </div>
+        <button class="btn btn-refresh" onclick="chargerBilans()">🔄 Rafraîchir</button>
+      </div>
+      
+      <div class="filters">
+        <div class="filter-btn active" data-filter="all" onclick="filtrer('all')">Tous</div>
+        <div class="filter-btn" data-filter="pending" onclick="filtrer('pending')">À traiter</div>
+        <div class="filter-btn" data-filter="done" onclick="filtrer('done')">Traités</div>
+        <div class="filter-btn" data-filter="18-25" onclick="filtrer('18-25')">18-25</div>
+        <div class="filter-btn" data-filter="45-50" onclick="filtrer('45-50')">45-50</div>
+        <div class="filter-btn" data-filter="60-65" onclick="filtrer('60-65')">60-65</div>
+        <div class="filter-btn" data-filter="70-75" onclick="filtrer('70-75')">70-75</div>
+      </div>
+      
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="color: var(--grey);">Chargement des bilans...</p>
+      </div>
+      
+      <div id="bilan-list" class="bilan-list" style="display:none"></div>
+      
+      <div id="empty-state" class="empty-state" style="display:none">
+        <div class="icon">📭</div>
+        <h3>Aucun bilan pour l'instant</h3>
+        <p>Les bilans envoyés par les patients apparaîtront ici.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL DETAIL -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-title">Détail du bilan</h2>
+      <button class="modal-close" onclick="fermerModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fermerModal()">Fermer</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-warning" onclick="window.print()">🖨 Imprimer / PDF</button>
+        <button class="btn btn-primary" id="btn-toggle-statut" onclick="basculerStatut()">✓ Marquer comme traité</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIGURATION ====================
+// ⚠️ REMPLACE PAR L'URL DE TON GOOGLE APPS SCRIPT
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4aGgi2oDZzUOkWvyvv1yThTpFsEdgXfiH2L8trdh_AqnKdAfaGOhIK0pCe5J_RDJZ/exec";
+const PIN_ADMIN = "75014";
+
+// ==================== STRUCTURE DES QUESTIONNAIRES (pour affichage lisible) ====================
+const QUESTIONS_LABELS = {
+  sexe: 'Sexe',
+  age: 'Âge',
+  situation: 'Situation',
+  aidant: 'Aidant',
+  conditions: 'Conditions difficiles',
+  entourage: 'Contacts proches',
+  seul: 'Vit seul(e)',
+  traitement: 'Traitement en cours',
+  medicaments: 'Nombre médicaments/jour',
+  taille: 'Taille (m)',
+  poids: 'Poids (kg)',
+  maladies: 'Maladies',
+  antecedents: 'Antécédents familiaux',
+  poids_var: 'Variation poids',
+  toux: 'Toux fréquente',
+  toux_essouffle: 'Toux/essoufflement',
+  essouffle: 'Essoufflement',
+  apnee: 'Apnée/ronflements',
+  oedemes: 'Gonflements jambes',
+  poitrine: 'Douleurs poitrine effort',
+  menopause: 'Ménopause',
+  dentiste: 'Dentiste 12 mois',
+  vue: 'Vue',
+  audition: 'Audition',
+  urinaires: 'Troubles urinaires',
+  douleurs: 'Douleurs articulaires',
+  memoire: 'Mémoire',
+  chute: 'Chutes 12 mois',
+  quotidien: 'Difficultés quotidien',
+  logement_acces: 'Logement accessible',
+  amenagements: 'Aménagements chutes',
+  aide: 'Aide déplacement',
+  teleassistance: 'Téléassistance',
+  vaccins: 'Vaccins à jour',
+  hpv: 'Vaccin HPV',
+  grippe: 'Vaccin grippe',
+  zona: 'Vaccin zona',
+  pneumocoque: 'Vaccin pneumocoque',
+  frottis: 'Frottis',
+  contraception: 'Contraception',
+  regles: 'Règles douloureuses',
+  ist: 'Dépistage IST',
+  risque_sexuel: 'Situation à risque',
+  colorectal: 'Dépistage colorectal',
+  mammo: 'Mammographie',
+  alcool: 'Alcool',
+  binge: 'Binge drinking',
+  tabac: 'Tabac/vapote',
+  sevrage: 'Envie d\'arrêter tabac',
+  substances: 'Autres substances',
+  activite: 'Activité physique',
+  fruits: 'Fruits/légumes',
+  proteines: 'Protéines',
+  laitiers: 'Produits laitiers',
+  appetit: 'Perte d\'appétit',
+  ecrans: 'Temps écran',
+  sedentaire: 'Temps assis/jour',
+  retraite: 'Regard retraite',
+  sommeil: 'Sommeil',
+  anxiete: 'Anxiété',
+  tristesse: 'Tristesse',
+  idees_noires: 'Idées noires',
+  violences: 'Violences',
+  remarques: 'Remarques',
+};
+
+// ==================== ÉTAT ====================
+let allBilans = [];
+let currentFilter = 'all';
+let currentBilan = null;
+
+// ==================== LOGIN ====================
+function verifierPin() {
+  const pin = document.getElementById('pin-code').value;
+  const errorDiv = document.getElementById('pin-error');
+  
+  if (pin === PIN_ADMIN) {
+    errorDiv.style.display = 'none';
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('header-badge').style.display = 'block';
+    chargerBilans();
+  } else {
+    errorDiv.style.display = 'block';
+    document.getElementById('pin-code').value = '';
+    document.getElementById('pin-code').focus();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const pinInput = document.getElementById('pin-code');
+  pinInput.focus();
+  pinInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); verifierPin(); }
+  });
+});
+
+// ==================== CHARGEMENT ====================
+async function chargerBilans() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('bilan-list').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'none';
+  
+  try {
+    const url = APPS_SCRIPT_URL + '?action=list&pin=' + PIN_ADMIN;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.success) {
+      allBilans = data.bilans || [];
+      afficherBilans();
+    } else {
+      throw new Error(data.error || 'Erreur inconnue');
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    document.getElementById('loading').innerHTML = 
+      '<p style="color:var(--alert);">❌ Erreur de chargement. Vérifiez l\'URL de l\'API dans le script.</p>';
+  }
+}
+
+function afficherBilans() {
+  document.getElementById('loading').style.display = 'none';
+  
+  // Filtrer
+  let filtered = allBilans;
+  if (currentFilter === 'pending') {
+    filtered = allBilans.filter(b => b.statut !== 'Traité');
+  } else if (currentFilter === 'done') {
+    filtered = allBilans.filter(b => b.statut === 'Traité');
+  } else if (['18-25', '45-50', '60-65', '70-75'].includes(currentFilter)) {
+    filtered = allBilans.filter(b => b.tranche === currentFilter);
+  }
+  
+  // Stats
+  document.getElementById('stat-total').textContent = allBilans.length;
+  document.getElementById('stat-pending').textContent = allBilans.filter(b => b.statut !== 'Traité').length;
+  document.getElementById('stat-done').textContent = allBilans.filter(b => b.statut === 'Traité').length;
+  
+  if (filtered.length === 0) {
+    document.getElementById('bilan-list').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+    return;
+  }
+  
+  const list = document.getElementById('bilan-list');
+  list.style.display = 'flex';
+  list.innerHTML = '';
+  
+  filtered.forEach(bilan => {
+    const card = document.createElement('div');
+    card.className = 'bilan-card ' + (bilan.statut === 'Traité' ? 'done' : 'pending');
+    card.onclick = () => afficherDetail(bilan);
+    
+    const trancheBadge = 'badge-' + bilan.tranche.replace('-', '');
+    const statutBadge = bilan.statut === 'Traité' ? 'statut-traite' : 'statut-non-traite';
+    
+    card.innerHTML = `
+      <div class="bilan-info">
+        <div class="nom">👤 ${escapeHtml(bilan.nom)}</div>
+        <div class="details">📅 ${bilan.date} • ${bilan.tranche} ans</div>
+      </div>
+      <span class="bilan-badge ${trancheBadge}">${bilan.tranche} ans</span>
+      <span class="statut-badge ${statutBadge}">${bilan.statut}</span>
+    `;
+    
+    list.appendChild(card);
+  });
+  
+  document.getElementById('empty-state').style.display = 'none';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function filtrer(type) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-filter="${type}"]`).classList.add('active');
+  afficherBilans();
+}
+
+// ==================== DÉTAIL D'UN BILAN ====================
+function afficherDetail(bilan) {
+  currentBilan = bilan;
+  document.getElementById('modal-title').textContent = 
+    `Bilan ${bilan.tranche} ans — ${bilan.nom}`;
+  
+  const body = document.getElementById('modal-body');
+  body.innerHTML = '';
+  
+  // Info patient
+  const info = document.createElement('div');
+  info.style.cssText = 'background:var(--bg-light);padding:12px;border-radius:8px;margin-bottom:15px;';
+  info.innerHTML = `
+    <strong>👤 ${escapeHtml(bilan.nom)}</strong> • 
+    <span style="color:var(--grey);">📅 ${bilan.date}</span> • 
+    <span style="color:var(--primary);">Tranche : ${bilan.tranche} ans</span>
+  `;
+  body.appendChild(info);
+  
+  // Analyse
+  const analysis = genererConseils(bilan.answers, bilan.tranche);
+  
+  // Calculs (IMC, etc.)
+  if (analysis.calculs && analysis.calculs.length > 0) {
+    const calcDiv = document.createElement('div');
+    calcDiv.style.cssText = 'background:var(--bg-blue);padding:12px;border-radius:8px;margin-bottom:15px;border-left:5px solid var(--primary);';
+    let calcHtml = '<strong style="color:var(--primary);">📊 Calculs :</strong><br/>';
+    analysis.calculs.forEach(c => { calcHtml += '• ' + c + '<br/>'; });
+    calcDiv.innerHTML = calcHtml;
+    body.appendChild(calcDiv);
+  }
+  
+  if (analysis.alertes.length > 0) {
+    body.appendChild(createCard('🚨 ALERTES', analysis.alertes, 'card-alert'));
+  }
+  if (analysis.actes.length > 0) {
+    body.appendChild(createCard('🩺 ACTES PHARMACEUTIQUES À PROPOSER', analysis.actes, 'card-actes'));
+  }
+  if (analysis.produits.length > 0) {
+    body.appendChild(createCard('💊 VENTES ASSOCIÉES', analysis.produits, 'card-produits'));
+  }
+  if (analysis.orientations.length > 0) {
+    body.appendChild(createCard('📞 ORIENTATIONS', analysis.orientations, 'card-orientations'));
+  }
+  if (analysis.accroches && analysis.accroches.length > 0) {
+    const accrocheCard = document.createElement('div');
+    accrocheCard.className = 'result-card';
+    accrocheCard.style.cssText = 'background:#F5E6FF;border-left:5px solid #8B4B9E;';
+    accrocheCard.innerHTML = '<h3 style="color:#8B4B9E;">💬 PHRASES D\'ACCROCHE PATIENT</h3>';
+    const ul = document.createElement('ul');
+    analysis.accroches.forEach(a => {
+      const li = document.createElement('li');
+      li.style.cssText = 'font-style:italic;color:#5D3A6B;';
+      li.textContent = a;
+      ul.appendChild(li);
+    });
+    accrocheCard.appendChild(ul);
+    body.appendChild(accrocheCard);
+  }
+  if (analysis.alertes.length === 0 && analysis.actes.length === 0 && 
+      analysis.produits.length === 0 && analysis.orientations.length === 0) {
+    body.appendChild(createCard('✅ BILAN FAVORABLE', 
+      ['Aucune alerte particulière. Féliciter le patient et rappeler les bases : 5 fruits/légumes par jour, 30 min d\'activité physique, dépistages à jour.'], 
+      'card-info'));
+  }
+  
+  // Récap des réponses
+  const recapDiv = document.createElement('div');
+  recapDiv.style.marginTop = '20px';
+  const recapTitle = document.createElement('h3');
+  recapTitle.textContent = '📋 Récapitulatif des réponses du patient';
+  recapTitle.style.cssText = 'color:var(--primary);margin-bottom:12px;';
+  recapDiv.appendChild(recapTitle);
+  
+  const section = document.createElement('div');
+  section.className = 'review-section';
+  Object.keys(bilan.answers).forEach(key => {
+    const item = document.createElement('div');
+    item.className = 'review-item';
+    const label = QUESTIONS_LABELS[key] || key;
+    item.innerHTML = `<span class="q-text">${label}</span><span class="a-text">${escapeHtml(bilan.answers[key])}</span>`;
+    section.appendChild(item);
+  });
+  recapDiv.appendChild(section);
+  body.appendChild(recapDiv);
+  
+  // Bouton statut
+  const btnStatut = document.getElementById('btn-toggle-statut');
+  if (bilan.statut === 'Traité') {
+    btnStatut.textContent = '↩ Marquer comme non traité';
+    btnStatut.className = 'btn btn-secondary';
+  } else {
+    btnStatut.textContent = '✓ Marquer comme traité';
+    btnStatut.className = 'btn btn-primary';
+  }
+  
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function fermerModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  currentBilan = null;
+}
+
+async function basculerStatut() {
+  if (!currentBilan) return;
+  const nouveauStatut = currentBilan.statut === 'Traité' ? 'Non traité' : 'Traité';
+  
+  try {
+    const url = `${APPS_SCRIPT_URL}?action=update&pin=${PIN_ADMIN}&id=${currentBilan.id}&statut=${encodeURIComponent(nouveauStatut)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.success) {
+      currentBilan.statut = nouveauStatut;
+      // Mettre à jour dans la liste globale
+      const idx = allBilans.findIndex(b => b.id === currentBilan.id);
+      if (idx !== -1) allBilans[idx].statut = nouveauStatut;
+      
+      fermerModal();
+      afficherBilans();
+    }
+  } catch (error) {
+    alert('Erreur lors de la mise à jour');
+  }
+}
+
+function createCard(titre, items, className) {
+  const card = document.createElement('div');
+  card.className = 'result-card ' + className;
+  const h3 = document.createElement('h3');
+  h3.textContent = titre;
+  card.appendChild(h3);
+  const ul = document.createElement('ul');
+  items.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+  return card;
+}
+
+// ==================== ANALYSE ULTRA-PERSONNALISÉE V3 ====================
+// Croise les réponses pour proposer les conseils les plus pertinents
+function genererConseils(r, tranche) {
+  const alertes = [], actes = [], produits = [], orientations = [], calculs = [], accroches = [];
+  
+  // Helpers
+  const has = (val, str) => val && String(val).toLowerCase().indexOf(String(str).toLowerCase()) !== -1;
+  const isOui = (val) => val === 'Oui' || (val && String(val).indexOf('Oui') === 0);
+  const isFemme = r.sexe === 'Une femme';
+  const isHomme = r.sexe === 'Un homme';
+  const age = parseInt(r.age) || 0;
+  
+  // ============================================================
+  // 📊 CALCULS PRÉLIMINAIRES
+  // ============================================================
+  let imc = null, imcCat = '';
+  const taille = parseFloat(String(r.taille || '').replace(',', '.'));
+  const poids = parseFloat(String(r.poids || '').replace(',', '.'));
+  
+  if (taille && poids && taille > 0.5 && taille < 2.5 && poids > 20) {
+    imc = poids / (taille * taille);
+    if (imc < 18.5) imcCat = 'Maigreur';
+    else if (imc < 25) imcCat = 'Normal';
+    else if (imc < 30) imcCat = 'Surpoids';
+    else if (imc < 35) imcCat = 'Obésité modérée';
+    else if (imc < 40) imcCat = 'Obésité sévère';
+    else imcCat = 'Obésité massive';
+    calculs.push(`📏 IMC = ${imc.toFixed(1)} — ${imcCat} (${poids}kg / ${taille}m)`);
+  }
+  
+  // Consommation alcool score (0-3)
+  let scoreAlcool = 0;
+  if (has(r.alcool, 'Plus de 2 verres')) scoreAlcool += 2;
+  if (has(r.alcool, 'Plus de 10 verres')) scoreAlcool += 2;
+  if (r.binge === 'Oui') scoreAlcool += 2;
+  if (has(r.alcool, 'Je ne bois pas')) scoreAlcool = 0;
+  
+  // Score sédentarité (0-3)
+  let scoreSedent = 0;
+  if (r.activite === 'Jamais' || has(r.activite, '1 à 2')) scoreSedent += 2;
+  if (has(r.sedentaire, 'Plus de 7') || r.sedentaire === '>7h') scoreSedent += 2;
+  if (r.sedentaire === '4-7h' || has(r.sedentaire, 'Entre 4 et 7')) scoreSedent += 1;
+  
+  // Score alimentation (0-3, plus haut = pire)
+  let scoreAlim = 0;
+  if (r.fruits === 'Jamais' || r.fruits === 'Rarement') scoreAlim += 2;
+  if (r.fruits === 'De temps en temps') scoreAlim += 1;
+  
+  // Score risque cardiovasculaire (facteurs cumulés)
+  const facteursFDRCV = [];
+  if (r.maladies === 'Diabète') facteursFDRCV.push('diabète');
+  if (r.maladies === 'Hypertension') facteursFDRCV.push('HTA');
+  if (has(r.maladies, 'Cholestérol')) facteursFDRCV.push('dyslipidémie');
+  if (r.maladies === 'Maladies cardio' || has(r.maladies, 'cardiovasculaires')) facteursFDRCV.push('ATCD cardio');
+  if (imc && imc >= 30) facteursFDRCV.push('obésité');
+  if (isOui(r.tabac) && r.tabac !== 'J\'ai arrêté') facteursFDRCV.push('tabac');
+  if (scoreSedent >= 2) facteursFDRCV.push('sédentarité');
+  if (age >= 60 && isHomme) facteursFDRCV.push('sexe/âge');
+  if (age >= 65 && isFemme) facteursFDRCV.push('sexe/âge');
+  
+  if (facteursFDRCV.length > 0) {
+    calculs.push(`❤ Facteurs de risque CV : ${facteursFDRCV.length} (${facteursFDRCV.join(', ')})`);
+  }
+  
+  // Score PHQ-2 simplifié (dépression)
+  let scoreHumeur = 0;
+  if (r.tristesse === 'Plus de 7 jours') scoreHumeur += 2;
+  if (r.tristesse === 'Presque tous les jours') scoreHumeur += 3;
+  if (r.anxiete === 'Plus de 7 jours') scoreHumeur += 2;
+  if (r.anxiete === 'Presque tous les jours') scoreHumeur += 3;
+  
+  // ============================================================
+  // 🚨 ALERTES CRITIQUES (priorité absolue)
+  // ============================================================
+  
+  // Idées noires - distinguer les niveaux
+  if (has(r.idees_noires, 'tentative')) {
+    alertes.push('🚨 URGENCE — Antécédent de tentative de suicide. Vigilance MAXIMALE. Ne pas laisser repartir sans plan de sécurité. Contacter directement le médecin traitant. 3114 (24/24). Vérifier présence d\'un proche.');
+    accroches.push('Prendre un temps calme au comptoir. "Je vois qu\'il y a eu une période difficile. Comment allez-vous aujourd\'hui ? Qui vous accompagne ?"');
+  } else if (has(r.idees_noires, 'idées noires')) {
+    alertes.push('🚨 Idées suicidaires actives. Orienter IMMÉDIATEMENT vers médecin traitant. Donner le 3114 (24/24, gratuit, confidentiel). Ne pas minimiser.');
+    accroches.push('"Ce que vous partagez est important. Voulez-vous que j\'appelle votre médecin avec vous ? Le 3114 est un numéro d\'écoute gratuit."');
+  }
+  
+  // Violences
+  if (r.violences === 'Oui') {
+    alertes.push('🚨 Violences signalées. Écouter sans juger, sans questionner brutalement. 3919 (violences femmes, gratuit, anonyme) ou 119 (enfance). Espace confidentiel à proposer.');
+    accroches.push('"Je vous remercie de votre confiance. Vous n\'êtes pas seule/seul. Voici un numéro discret que vous pouvez appeler quand vous voulez : 3919."');
+  }
+  
+  // Douleurs thoraciques
+  if (r.poitrine === 'Oui') {
+    if (facteursFDRCV.length >= 2) {
+      alertes.push('🚨 Douleurs thoraciques + facteurs de risque cumulés — URGENCE cardiologique. Consultation cardiologue rapide, ECG, épreuve d\'effort. Ne pas attendre.');
+    } else {
+      alertes.push('🚨 Douleurs thoraciques à l\'effort → consultation médecin traitant SOUS 48H (suspicion angor).');
+    }
+    produits.push('❤ En attente du bilan cardio : oméga 3 haute dose (Omacor), coenzyme Q10, tensiomètre bras Omron M3 pour automesure.');
+  }
+  
+  // Amaigrissement senior
+  if (tranche === '70-75' && r.poids_var === 'Amaigrissement') {
+    alertes.push('⚠ Amaigrissement involontaire senior — DÉNUTRITION probable ou pathologie sous-jacente (cancer, dépression, hyperthyroïdie). Bilan médical urgent. Peser toutes les semaines.');
+  }
+  if (tranche === '60-65' && r.poids_var === 'Amaigrissement' && facteursFDRCV.length === 0) {
+    alertes.push('⚠ Amaigrissement inexpliqué — bilan médical (cancer, hyperthyroïdie, dépression, diabète déséquilibré).');
+  }
+  
+  // ============================================================
+  // 📏 INTERPRÉTATION IMC (contextualisée)
+  // ============================================================
+  if (imc !== null) {
+    if (imc >= 40) {
+      alertes.push(`⚠ Obésité massive (IMC ${imc.toFixed(1)}) — risque cardio-métabolique majeur. Orientation médecin. Éligibilité chirurgie bariatrique à discuter.`);
+      produits.push('⚖ Accompagnement : XLS Medical Max Strength, konjac, chrome. Balance impédancemétrie Terraillon (~50€). Suivi diététicien remboursé en ALD.');
+    } else if (imc >= 35) {
+      if (r.maladies === 'Diabète' || r.maladies === 'Hypertension') {
+        alertes.push(`⚠ Obésité sévère (IMC ${imc.toFixed(1)}) + comorbidité — éligibilité chirurgie bariatrique (BMI ≥35 avec comorbidité).`);
+      }
+      produits.push('⚖ Accompagnement : XLS Medical, Alli 60mg (OTC — orlistat), coach nutrition, activité physique adaptée.');
+      orientations.push('👨‍⚕️ Consultation médecin nutritionniste + APA (activité physique adaptée sur ordonnance).');
+    } else if (imc >= 30) {
+      produits.push('⚖ Obésité : XLS Medical Max Strength, Alli (OTC), programme diététicien, tisane drainante (Elusanes), thé vert. Balance connectée.');
+      accroches.push('"Perdre 5 à 10% du poids diminue considérablement les risques. On peut vous accompagner par étapes."');
+    } else if (imc >= 27 && facteursFDRCV.length >= 1) {
+      produits.push('⚖ Surpoids + facteur de risque : XLS Medical, konjac, thé vert, activité physique 30 min/j.');
+    } else if (imc >= 25) {
+      produits.push('⚖ Surpoids modéré : XLS Medical, konjac (Arkogélules), meilleur équilibre alimentaire.');
+    } else if (imc < 18.5 && tranche !== '70-75') {
+      if (isFemme && tranche === '18-25') {
+        alertes.push(`⚠ IMC ${imc.toFixed(1)} — dépister TCA (anorexie, hyperphagie). Questions ouvertes sans jugement.`);
+      } else {
+        alertes.push(`⚠ Maigreur (IMC ${imc.toFixed(1)}) — investiguer causes.`);
+      }
+      produits.push('💪 Hyperprotéinés : Fortimel Compact Protein, protéines whey/végétales, Prot\'Age.');
+    }
+  }
+  
+  // ============================================================
+  // 🔀 CROISEMENTS À RISQUE
+  // ============================================================
+  
+  // Cocktail cardio-métabolique
+  if (facteursFDRCV.length >= 3) {
+    alertes.push(`⚠ Haut risque cardiovasculaire (${facteursFDRCV.length} facteurs). Bilan urgent : HbA1c, bilan lipidique complet, MAPA ou automesure, ECG.`);
+    produits.push('❤ Prévention CV globale : oméga 3 EPA/DHA 1g/j (Omacor sur ordo, Isodiol), coenzyme Q10 100mg, magnésium bisglycinate, ail noir (Kyolic).');
+    actes.push('🩺 Automesure tensionnelle 3 jours (protocole HAS) — tensiomètre Omron M3/M6 validé.');
+  } else if (facteursFDRCV.length === 2) {
+    produits.push('❤ 2 facteurs de risque CV — oméga 3 (Omacor), tensiomètre bras, magnésium marin.');
+    actes.push('🩺 Contrôle bilan lipidique + glycémie à jeun + tension.');
+  }
+  
+  // BPCO suspecte
+  if ((r.toux === 'Oui' || r.toux_essouffle === 'Oui') && (r.essouffle === 'Oui' || r.toux_essouffle === 'Oui')) {
+    if (isOui(r.tabac) || r.tabac === 'J\'ai arrêté') {
+      alertes.push('⚠ Toux + essoufflement + tabac (actif/ATCD) → SUSPICION BPCO. Spirométrie chez pneumologue impérative. BPCO 3e cause de mortalité en France.');
+      produits.push('🫁 En attente : Prospan sirop (fluidifiant), N-Acétylcystéine (Fluimucil), Peak flow. Kinésithérapie respiratoire.');
+    } else if (age >= 45) {
+      orientations.push('🫁 Toux chronique + essoufflement → consultation pneumologue (spirométrie).');
+      produits.push('🫁 Prospan, Fluimucil 600mg, humidificateur, inhalations Euvanol.');
+    }
+  }
+  
+  // Apnée du sommeil (SAOS)
+  if (r.apnee === 'Oui') {
+    if (imc && imc >= 27) {
+      alertes.push('😴 Apnée + surpoids/obésité → SAOS très probable. Polysomnographie obligatoire. Impact majeur sur HTA/diabète/AVC.');
+    } else {
+      orientations.push('😴 Ronflements + pauses respiratoires → orienter polysomnographie (pneumologue/ORL). Impact cardio-métabolique majeur.');
+    }
+    produits.push('😴 En attente diagnostic : orthèse Quies anti-ronflement, spray Snorpin, oreiller ergonomique cervical, position latérale.');
+  }
+  
+  // Sommeil + humeur (dépression masquée)
+  if ((r.sommeil === 'Oui souvent' || r.sommeil === 'Somnifères') && scoreHumeur >= 3) {
+    orientations.push('💚 Insomnie + humeur basse persistante = TABLEAU DÉPRESSIF. Consultation médecin. Mon Psy Santé (12 séances remboursées à 100% par CPAM depuis 2024).');
+    produits.push('💊 En attente : Serelys Humeur (safran + griffonia), oméga 3 EPA (2g/j — effet antidépresseur documenté), millepertuis Mildac (attention interactions).');
+  }
+  
+  // Isolement + humeur + senior
+  if ((tranche === '60-65' || tranche === '70-75') && (r.seul === 'Oui' || r.entourage === 'Non') && scoreHumeur >= 2) {
+    alertes.push('⚠ Isolement + humeur basse senior — risque dépression sévère, glissement gériatrique. Orienter médecin + lien social urgent.');
+    orientations.push('💚 Petits Frères des Pauvres, Monalisa (mobilisation nationale contre l\'isolement), CCAS Mairie 14e, restos sociaux, portage repas.');
+  }
+  
+  // Diabète + dentiste
+  if (r.maladies === 'Diabète' && r.dentiste === 'Non') {
+    alertes.push('⚠ Diabète SANS suivi dentaire — la parodontite déséquilibre le diabète (cercle vicieux). Consultation dentaire PRIORITAIRE. 100% remboursée si diabète ALD.');
+    produits.push('🦷 Diabète : Meridol dentifrice + bain de bouche, brosse Oral-B Pro électrique, révélateur plaque GUM.');
+    actes.push('🦷 Rappel : dentiste 100% remboursé pour diabétiques (ALD).');
+  }
+  
+  // Diabète + fumeur (interaction dramatique)
+  if (r.maladies === 'Diabète' && (r.tabac === 'Oui je fume' || r.tabac === 'Oui, je fume')) {
+    alertes.push('⚠ Diabète + tabac = risque cardio-vasculaire × 4-5. Sevrage tabac PRIORITÉ ABSOLUE. Bénéfice cardio dès 6 mois.');
+    actes.push('🚭 Entretien sevrage tabagique renforcé — priorité vitale. Substituts 100% remboursés.');
+  }
+  
+  // Menopause + sédentarité + IMC (risque ostéoporose)
+  if (tranche === '45-50' && r.menopause === 'Oui' && (scoreSedent >= 2 || (imc && imc < 22))) {
+    orientations.push('🦴 Ménopause + risque ostéoporose (sédentarité/IMC bas). Densitométrie osseuse (DMO) à discuter avec médecin.');
+    produits.push('🦴 Prévention ostéoporose ménopause : Vit D3 (ZymaD, Uvedose 100 000UI), Calcium (Cacit 1000, Ostram), Vit K2 (Menakinox), Structoflex.');
+  }
+  
+  // Chutes + benzodiazépines
+  if (tranche === '70-75' && has(r.chute, 'Oui') && r.sommeil === 'Somnifères') {
+    alertes.push('⚠ Chute + somnifères = association DANGEREUSE. Les benzodiazépines multiplient le risque de chute par 2-3. Plan de sevrage progressif nécessaire (protocole HAS).');
+    orientations.push('😴 Consultation médecin pour déprescription progressive (mode d\'emploi HAS déprescription BZD).');
+  }
+  
+  // Polymédication + mémoire
+  if ((tranche === '60-65' || tranche === '70-75') && 
+      (r.medicaments === '4-6' || r.medicaments === '>6' || r.medicaments === '4 à 6' || r.medicaments === 'Plus de 6') && 
+      r.memoire === 'Oui') {
+    alertes.push('⚠ Polymédication + troubles mémoire — attention iatrogénie cognitive (anticholinergiques, BZD). BPM prioritaire pour déprescription.');
+    actes.push('🩺 Bilan Partagé de Médication (60€ facturable) — évaluation charge anticholinergique.');
+  }
+  
+  // Alcool + médicaments senior
+  if ((tranche === '60-65' || tranche === '70-75') && scoreAlcool >= 2 && 
+      (r.medicaments === '4-6' || r.medicaments === '>6' || r.medicaments === '4 à 6' || r.medicaments === 'Plus de 6')) {
+    alertes.push('⚠ Alcool + polymédication senior — interactions dangereuses (BZD, antalgiques, AVK). Bilan urgent.');
+  }
+  
+  // Alimentation pauvre + fatigue chronique
+  if (scoreAlim >= 2 && r.sommeil === 'Oui souvent' && scoreHumeur >= 1) {
+    produits.push('💊 Alimentation pauvre + fatigue : bilan carences probable (fer, B12, vit D). Berocca, Alvityl, Bion 3, Tardyferon (femme réglée).');
+  }
+  
+  // Femmes non ménopausées + fatigue
+  if (isFemme && (tranche === '18-25' || tranche === '45-50') && 
+      r.sommeil === 'Oui souvent' && r.regles !== 'Non concerné(e)') {
+    produits.push('🩸 Fatigue femme réglée : dépister anémie (ferritine). Tardyferon 80mg, Timoferol (si carence), Ferrostrane sirop.');
+  }
+  
+  // Hommes + urinaires + âge
+  if (isHomme && r.urinaires === 'Oui' && (tranche === '60-65' || tranche === '70-75')) {
+    orientations.push('♂ Troubles urinaires homme 60+ → bilan urologique (PSA, échographie prostate, débitmétrie). Éliminer cancer prostate.');
+  }
+  
+  // Tabac + jeune femme + contraception hormonale
+  if (tranche === '18-25' && isFemme && (r.tabac === 'Oui je fume' || r.tabac === 'Oui, je fume') && r.contraception === 'Oui') {
+    alertes.push('⚠ Tabac + contraception hormonale = risque thromboembolique majoré. Discuter changement méthode (stérilet cuivre, préservatif).');
+  }
+  
+  // ============================================================
+  // 💉 VACCINATIONS (personnalisées par tranche)
+  // ============================================================
+  
+  if (r.vaccins === 'Non' || r.vaccins === 'Je ne sais pas') {
+    if (tranche === '18-25') {
+      actes.push('💉 Vérifier DTP (rappel 25 ans), méningo ACYW135, ROR (2 doses), hépatite B, coqueluche.');
+    } else if (tranche === '45-50') {
+      actes.push('💉 DTP (rappel 45 ans), coqueluche (rappel décennal). Grippe si diabète/BPCO.');
+    } else if (tranche === '60-65') {
+      actes.push('💉 DTP + coqueluche. Grippe (obligatoire 65+). Zona Shingrix (2 doses). Pneumocoque si comorbidité.');
+    } else if (tranche === '70-75') {
+      actes.push('💉 PRIORITÉ vaccinale complète : grippe + zona Shingrix (2 doses) + pneumocoque (Prevenar 13 puis Pneumovax 23) + COVID + DTP.');
+    }
+  }
+  
+  // Vaccination ciblée si diabète
+  if (r.maladies === 'Diabète' && (r.vaccins !== 'Oui' || r.grippe === 'Non')) {
+    actes.push('💉 Diabétique → grippe + pneumocoque OBLIGATOIRES chaque année. Herpès zoster si >65 ans.');
+  }
+  
+  // ============================================================
+  // 🎗 DÉPISTAGES ORGANISÉS
+  // ============================================================
+  
+  if (isFemme) {
+    // Frottis 25 ans
+    if (tranche === '18-25' && r.frottis === 'Non' && age >= 25) {
+      actes.push('🩺 1er frottis à 25 ans (col utérus) → médecin traitant ou sage-femme. Puis test HPV tous les 5 ans à partir de 30 ans.');
+    }
+    // Mammo 50-74
+    if ((tranche === '45-50' && age >= 50 && (r.mammo === 'Jamais' || r.mammo === '>2 ans' || has(r.mammo, 'plus de 2 ans'))) ||
+        (tranche === '60-65' && (r.mammo === 'Jamais' || r.mammo === '>2 ans' || has(r.mammo, 'plus de 2 ans')))) {
+      actes.push('🎗 Mammographie dépistage cancer sein — tous les 2 ans, kit CPAM gratuit. Double lecture radiologique incluse.');
+    }
+    // Frottis 45-65
+    if ((tranche === '45-50' || tranche === '60-65') && 
+        (r.frottis === 'Jamais' || r.frottis === '>5 ans' || has(r.frottis, 'plus de 5 ans'))) {
+      actes.push('🩺 Test HPV tous les 5 ans (25-65 ans) → médecin/sage-femme/gynéco.');
+    }
+  }
+  
+  // Colorectal 50-74
+  if ((tranche === '45-50' && age >= 50) || tranche === '60-65' || tranche === '70-75') {
+    if (r.colorectal === 'Jamais' || r.colorectal === '>2 ans' || has(r.colorectal, 'plus de 2 ans')) {
+      actes.push('🎗 Test dépistage cancer colorectal — kit gratuit remis en officine sur invitation CPAM. Tous les 2 ans.');
+      accroches.push('"Le test se fait à la maison, en quelques secondes, c\'est indolore et complètement remboursé. Vous voulez que je vous donne le kit ?"');
+    }
+  }
+  
+  // ============================================================
+  // 🚬 TABAC (avec motivation)
+  // ============================================================
+  
+  if (r.tabac === 'Oui je fume' || r.tabac === 'Oui, je fume') {
+    if (r.sevrage === 'Oui rapidement') {
+      actes.push('🚭 Motivation ÉLEVÉE — SAISIR l\'opportunité. Entretien pharmaceutique sevrage (60€ CPAM). Rendez-vous cette semaine.');
+      produits.push('🚭 Combo prouvé efficace : Nicopatch 21mg/24h + Nicorette spray SOS. 100% remboursés sur ordonnance médecin/pharmacien/SF/dentiste/infirmier.');
+      accroches.push('"Vous avez le déclic ! On peut démarrer aujourd\'hui. Le combo patch + spray double vos chances de succès. Je vous fais l\'ordonnance ?"');
+    } else if (r.sevrage === 'Oui plus tard' || r.sevrage === 'Oui mais pas tout de suite') {
+      produits.push('🚭 Motivation à entretenir : appli TabacInfoService, brochure. Substituts disponibles quand prêt.');
+      accroches.push('"Quand vous serez prêt(e), on est là. On peut aussi préparer un plan sur mesure, sans pression."');
+    } else if (r.sevrage === 'Non') {
+      produits.push('🚭 Ambivalence : appli Kwit, entretien motivationnel court. Ne pas insister, semer une graine.');
+    }
+    if (facteursFDRCV.length >= 1) {
+      accroches.push('"Avec votre profil, arrêter le tabac est le geste qui va le plus vous protéger. Chaque cigarette compte."');
+    }
+  } else if (r.tabac === 'J\'ai arrêté') {
+    accroches.push('"Félicitations pour l\'arrêt du tabac ! C\'est un des meilleurs gestes santé possibles. On peut vérifier que tout se passe bien."');
+  }
+  
+  // ============================================================
+  // 🍷 ALCOOL (avec score)
+  // ============================================================
+  
+  if (scoreAlcool >= 4) {
+    orientations.push('🍷 Consommation à risque élevé — Alcool Info Service 0 980 980 930 (gratuit, anonyme). CSAPA consultation. Application Stop-Alcool.');
+    produits.push('🍷 Protection hépatique : Chardon-Marie (Arkogélules), Desmodium ampoules, NAC (Fluimucil 600mg), complexe B (Berocca).');
+  } else if (scoreAlcool >= 2) {
+    produits.push('🍷 Consommation à réduire : appli Stop-Alcool, Dry January, Chardon-Marie, hépatoprotection.');
+    accroches.push('"Vous êtes légèrement au-dessus des repères. Auriez-vous envie d\'essayer 1-2 jours de plus sans alcool par semaine ?"');
+  }
+  
+  // ============================================================
+  // 🎯 CONSEILS SPÉCIFIQUES PAR TRANCHE (enrichis)
+  // ============================================================
+  
+  // ═══════════════ 18-25 ANS ═══════════════
+  if (tranche === '18-25') {
+    // HPV
+    if (r.hpv === 'Non' || r.hpv === 'Je ne sais pas') {
+      if (age <= 19) {
+        actes.push('💉 Vaccination HPV (Gardasil 9) — recommandée dès 11 ans. Schéma 2 doses M0-M6 si <15 ans.');
+      } else if (age <= 26) {
+        actes.push('💉 Rattrapage HPV (Gardasil 9) — possible jusqu\'à 26 ans. Schéma 3 doses M0-M2-M6.');
+        accroches.push('"Le vaccin HPV prévient 90% des cancers du col. Le rattrapage est possible jusqu\'à 26 ans, remboursé à 65%."');
+      }
+    }
+    
+    // Contraception
+    if (isFemme && r.contraception === 'Non') {
+      produits.push('💊 Contraception d\'urgence : NorLevo (72h, sans ordo), EllaOne (120h, sur ordo). Préservatifs Manix, Durex + gel lubrifiant.');
+      orientations.push('👩‍⚕️ Consultation contraception : médecin, sage-femme, planning familial. Contraception d\'urgence remboursée à 100% pour <26 ans.');
+    }
+    
+    // Règles douloureuses
+    if (r.regles === 'Oui') {
+      produits.push('🌸 Règles douloureuses : Antadys 275mg (ordo si intense), Spasfon Lyoc, Nurofen 400, bouillotte, magnésium marin, HE sauge sclarée cutanée.');
+      if (age >= 20) {
+        orientations.push('👩‍⚕️ Règles très douloureuses = ATTENTION endométriose. Consultation gynéco si douleur invalidante.');
+      }
+    }
+    
+    // IST
+    if (has(r.risque_sexuel, 'Plusieurs partenaires') || has(r.risque_sexuel, 'IST') || has(r.risque_sexuel, 'préservatif')) {
+      actes.push('🔬 Dépistage IST recommandé : TROD VIH/VHC en officine (gratuit) + labo pour chlamydia, gonocoque, syphilis. Autotest VIH aussi.');
+      produits.push('🛡 Prévention : préservatifs (gratuits pour <26 ans en pharmacie sur ordo), autotests IST.');
+    }
+    
+    // Protoxyde d'azote — dangereux
+    if (r.substances === 'Protoxyde d\'azote') {
+      alertes.push('⚠ Protoxyde d\'azote = risque neurologique majeur (carence B12 fonctionnelle, paresthésies, myélopathie). Bilan homocystéine + B12 + IRM médullaire si symptômes neuro.');
+      produits.push('🧠 Si carence B12 : Cyanocobalamine injectable (ordo médecin), acide folique 5mg. Arrêt IMPÉRATIF.');
+    }
+    
+    // Cannabis + jeunes
+    if (r.substances === 'Cannabis' && age <= 22) {
+      orientations.push('🌿 Cannabis chez jeune adulte : risque neurodéveloppemental (cerveau immature jusqu\'à 25 ans). Consultation Jeunes Consommateurs (CJC gratuit).');
+      accroches.push('"Le cerveau finit de mûrir vers 25 ans. Le cannabis peut interférer. On peut en parler en confidentialité."');
+    }
+    
+    // Écrans + jeunes
+    if (r.ecrans === '>4h' || r.ecrans === 'Plus de 4 heures') {
+      produits.push('👀 Écrans > 4h : Ocuvite Lutéine (yeux), lunettes filtre lumière bleue, gouttes Vismed multi.');
+      accroches.push('"La règle 20-20-20 : toutes les 20 minutes, regarder à 20 pieds (6m) pendant 20 secondes."');
+    }
+    
+    // Sommeil jeune
+    if (r.sommeil === 'Oui souvent' || r.sommeil === 'Somnifères') {
+      produits.push('😴 Sommeil jeune adulte : Euphytose Nuit, Novanuit mélatonine 1.9mg, Rescue Night, tisanes Elusanes Sommeil. Hygiène de sommeil.');
+      if (r.ecrans === '>4h') {
+        produits.push('📱 Cesser écrans 1h avant coucher. App Sleep Cycle, filtre bleu du soir.');
+      }
+    }
+    
+    // Anxiété jeune
+    if (scoreHumeur >= 2) {
+      produits.push('🧘 Anxiété jeune : Sériane Stress, Rescue Remedy, magnésium D-Stress, Ashwagandha (Elusanes), respiration cohérente cardiaque.');
+      orientations.push('💬 Mon Psy Santé : 12 séances psy 100% remboursées/an (dès 3 ans). Sur prescription médecin. Fil santé jeunes 0 800 235 236 (gratuit).');
+    }
+    
+    // Activité physique
+    if (r.activite === 'Jamais') {
+      produits.push('🏃 Reprise activité : magnésium (récup musculaire), whey/protéines végétales, articulations préventives.');
+      accroches.push('"Commencer par 10 minutes de marche par jour, c\'est déjà 40% de bénéfice santé. On peut construire un plan progressif."');
+    }
+    
+    // Alimentation carencée
+    if (scoreAlim >= 1) {
+      produits.push('🥗 Compléments jeune : Azinc Forme, Bion 3 Défenses, oméga 3, Vit D3 2000UI (ZymaD), fer Tardyferon si femme.');
+    }
+    
+    // Aidant jeune
+    if (r.aidant === 'Oui') {
+      orientations.push('🤝 Jeune aidant : plateforme 0 800 360 360, associations JADE (Jeunes AiDants Ensemble), reconnaissance officielle.');
+    }
+  }
+  
+  // ═══════════════ 45-50 ANS ═══════════════
+  if (tranche === '45-50') {
+    // Ménopause (très détaillé)
+    if (isFemme && r.menopause === 'Oui') {
+      produits.push('🌡 Bouffées de chaleur : Abufène 400mg (BEZAFIB), Sérélys, Ménophytea Ménopause, isoflavones soja (Phyto Soya).');
+      produits.push('💧 Sécheresse vaginale : Replens Long Lasting, Mucogyne gel/ovules, Trophigil ovules (ordo), lubrifiants Sensilube, Try.');
+      produits.push('😴 Sommeil ménopause : mélatonine + valériane (Novanuit), safran (Serelys Humeur), magnésium bisglycinate.');
+      produits.push('🧘 Humeur ménopause : Serelys Humeur (safran+griffonia), oméga 3 EPA, HE lavande vraie.');
+      produits.push('🦴 Prévention ostéo précoce : Vit D3 (ZymaD 2000UI), Calcium (Cacit 1000), Vit K2 (Menakinox), Structoflex.');
+      produits.push('👀 Sécheresse oculaire ménopause : larmes Aqualarm, Vismed multi, gel Célluvisc nuit.');
+      actes.push('🩺 Discuter THM (traitement hormonal) avec gynéco — bénéfices/risques selon profil.');
+      orientations.push('👩‍⚕️ Bilan ménopause : bilan lipidique, glycémie, DMO (densitométrie osseuse). Mammographie annuelle si THM.');
+      accroches.push('"La ménopause est un cap. On peut vous accompagner sur tous les aspects : bouffées, sommeil, os, sécheresse. Aucun symptôme n\'est à subir."');
+    }
+    
+    // Diabète (si présent)
+    if (r.maladies === 'Diabète') {
+      produits.push('🩸 Diabète 45-50 : lecteur Contour Next One + bandelettes (100% ALD), autopiqueur, chrome picolinate, gymnema sylvestre, oméga 3.');
+      produits.push('🦶 Pied diabétique : Akildia crème, chaussettes coton sans couture, monofilament auto-examen, podologue trimestriel 100% ALD.');
+      actes.push('🩺 Bilans annuels ALD : podologue, ophtalmo (fond d\'œil), néphro (créat), dentiste, cardio.');
+      accroches.push('"Le diabète bien équilibré, c\'est une espérance de vie normale. On vérifie votre HbA1c ensemble et on ajuste."');
+    }
+    
+    // HTA
+    if (r.maladies === 'Hypertension') {
+      produits.push('❤ HTA 45-50 : tensiomètre bras Omron M3/M6 (validé), oméga 3 (Omacor), magnésium taurate, sel réduit (Symbiosal), ail noir (Kyolic).');
+      actes.push('🩺 Automesure tensionnelle : 3 mesures matin + 3 mesures soir, 3 jours de suite. Cible <135/85 domicile.');
+    }
+    
+    // Cholestérol
+    if (has(r.maladies, 'Cholestérol')) {
+      produits.push('❤ Dyslipidémie : levure de riz rouge (Arkogélules — ⚠ pas si statines), phytostérols (Danacol yaourts), oméga 3 haute dose, coenzyme Q10 (si statines).');
+    }
+    
+    // Cancer (ATCD)
+    if (r.maladies === 'Cancers') {
+      produits.push('💊 ATCD cancer : compléments oméga 3, vit D3, curcumine (Flexofytol — attention interactions), probiotiques (chimio antérieure).');
+      orientations.push('🎗 Suivi oncologique + surveillance régulière. Réseau régional cancérologie.');
+    }
+    
+    // Douleurs 45+
+    if (r.douleurs === 'Oui') {
+      produits.push('🦴 Articulations 45+ : Voltarène Emulgel, Flexofytol curcuma (100% pris en charge post-ordo), glucosamine-chondroïtine (Structoflex), collagène marin type II (Genacol), harpagophytum.');
+      produits.push('💆 Automassage/kinésithérapie : rouleau de massage, TENS Bluetens (électrostimulation), tapis champ de fleurs.');
+      if (scoreSedent >= 2) {
+        accroches.push('"Souvent, les douleurs viennent du manque de mouvement. La marche 30 min/jour libère les articulations."');
+      }
+    }
+    
+    // Vue 45+
+    if (r.vue === 'Oui') {
+      produits.push('👀 Vue 45+ : Ocuvite Lutéine, Nutrof Total, larmes artificielles (Vismed, Aqualarm), lunettes loupe presbytie (+1.00 à +3.00).');
+      orientations.push('👀 Ophtalmo (dépistage glaucome, DMLA précoce, presbytie).');
+    }
+    
+    // Audition
+    if (r.audition === 'Oui') {
+      orientations.push('👂 ORL — audiogramme (remboursé). Prévention exposition sonore (bouchons Alpine, Loop).');
+    }
+    
+    // Dentiste
+    if (r.dentiste === 'Non') {
+      produits.push('🦷 Bucco-dentaire 45+ : brosse Oral-B Pro électrique, dentifrice Meridol/Sensodyne Repair, fil dentaire, bain de bouche Elgydium.');
+      actes.push('🦷 Contrôle dentaire annuel — remboursé + prévention parodontite.');
+    }
+    
+    // Aidant
+    if (r.aidant === 'Oui') {
+      orientations.push('🤝 Aidant 45-50 : plateforme aidants 0 800 360 360, congé proche aidant, APA-répit possible. Épuisement fréquent.');
+      produits.push('💪 Aidant en tension : magnésium marin, complexe B (Berocca), Rhodiola (Elusanes Stress).');
+    }
+    
+    // Conditions travail
+    if (r.conditions === 'Oui') {
+      produits.push('💪 Travail pénible : magnésium, complexe B, anti-inflammatoires locaux, semelles Formthotics/Sidas, ceinture lombaire.');
+      orientations.push('👨‍⚕️ Médecine du travail : reconnaissance pénibilité, adaptation poste, compte pénibilité.');
+    }
+  }
+  
+  // ═══════════════ 60-65 ANS ═══════════════
+  if (tranche === '60-65') {
+    // Prostate homme
+    if (isHomme && r.urinaires === 'Oui') {
+      produits.push('♂ HBP (hypertrophie prostate) : Permixon 160mg 2/jour, Serenoa repens (Arkogélules), Prostaction (courge), zinc, lycopène.');
+      orientations.push('♂ Bilan urologique : PSA + toucher rectal + débitmétrie + échographie. Éliminer cancer prostate (dépistage individuel).');
+      accroches.push('"À votre âge, un bilan urologique s\'impose. On distingue l\'HBP (bénigne, fréquente) du cancer (à dépister). Le PSA est simple."');
+    }
+    
+    // Fuites urinaires femme
+    if (isFemme && r.urinaires === 'Oui') {
+      produits.push('👩 Fuites urinaires femme 60+ : Tena Lady Discreet/Slim (jour), Tena Lady Maxi/Comfort (nuit). Cure canneberge (Cystiphane).');
+      produits.push('💧 Sécheresse post-ménopause : Replens Long Lasting, Mucogyne, ovules trophiques.');
+      orientations.push('👩‍⚕️ Kiné périnée (10 séances remboursées) ou urologue. Application Kegel Trainer.');
+    }
+    
+    // Mémoire
+    if (r.memoire === 'Oui') {
+      produits.push('🧠 Mémoire 60+ : Ginkgo (Tanakan 40mg — sur ordonnance), oméga 3 EPA/DHA (Omacor), Berocca (vit B), phosphatidylsérine.');
+      orientations.push('🧠 Test MMSE chez médecin traitant si oublis récurrents impactant quotidien. CMRR Broca (14e) pour bilan spécialisé.');
+      if (facteursFDRCV.length >= 2) {
+        accroches.push('"La mémoire dépend beaucoup de la santé cardiovasculaire. Contrôler tension/glycémie/cholestérol protège aussi le cerveau."');
+      }
+    }
+    
+    // Vue senior
+    if (r.vue === 'Oui') {
+      produits.push('👀 Vue 60+ : Ocuvite Lutéine, Nutrof Total (DMLA), larmes artificielles (Aqualarm, Vismed), gel nuit Célluvisc, lunettes loupe.');
+      orientations.push('👀 Ophtalmo annuel : DMLA, cataracte, glaucome. 100% Santé lunettes disponible.');
+    }
+    
+    // Audition
+    if (r.audition === 'Oui') {
+      orientations.push('👂 Audiogramme ORL (100% dès 60 ans). Appareillage 100% Santé (0€ à charge). Isolement social si non traité.');
+      produits.push('👂 Hygiène oreille : Audispray, Doc\'Ears, sérum physiologique auriculaire.');
+    }
+    
+    // Ostéoporose
+    if (r.maladies === 'Ostéoporose' || r.maladies === 'Ostéoporose/fractures') {
+      produits.push('🦴 Ostéoporose : Vit D3 (ZymaD 2000UI, Uvedose 100 000UI/trimestre), Calcium (Cacit 1000, Ostram), Vit K2 (Menakinox), Structoflex.');
+      actes.push('🩺 Densitométrie osseuse DMO à contrôler (remboursée). Bisphosphonates si indiqués.');
+    } else if (isFemme && !r.maladies) {
+      orientations.push('🦴 Prévention ostéoporose femme 60+ : DMO à discuter avec médecin.');
+    }
+    
+    // Retraite
+    if (r.retraite === 'Plutôt négatif' || r.retraite === 'Très négatif') {
+      orientations.push('🌱 Transition retraite difficile : associations 14e (Paris Jeune Retraite), Petits Frères des Pauvres, Universités permanentes Paris, bénévolat.');
+      accroches.push('"La retraite est un cap important. Beaucoup vivent une baisse de moral les 6 premiers mois. Vous voulez qu\'on en parle ?"');
+    }
+    
+    // Œdèmes
+    if (r.oedemes === 'Oui') {
+      orientations.push('🩸 Œdèmes chevilles → éliminer insuffisance cardiaque, veineuse, rénale. Bilan médical.');
+      produits.push('🩸 En attente : Daflon 500 (ordo), Cyclo 3 Fort, bas contention classe 2 (Sigvaris, Thuasne). Drainage lymphatique.');
+    }
+    
+    // Dentiste 60+
+    if (r.dentiste === 'Non') {
+      produits.push('🦷 Bucco-dentaire senior : brosse Oral-B Pro, dentifrice Meridol/Sensodyne Repair, bain fluoré Elgydium, fixateur prothèse Corega, Fixodent.');
+      actes.push('🦷 Contrôle dentaire annuel remboursé 100% dès 65 ans.');
+    }
+    
+    // Sommeil senior
+    if (r.sommeil === 'Somnifères') {
+      alertes.push('⚠ Somnifères chroniques 60+ = risque chute, mémoire, dépendance. Plan sevrage progressif (protocole HAS).');
+      orientations.push('😴 Consultation médecin pour déprescription BZD. Circadin (mélatonine LP) sur ordo comme relai.');
+    }
+    
+    // Aidant senior
+    if (r.aidant === 'Oui') {
+      orientations.push('🤝 Aidant 60+ : plateforme aidants, congé de proche aidant, APA-répit (Conseil départemental 75).');
+    }
+  }
+  
+  // ═══════════════ 70-75 ANS ═══════════════
+  if (tranche === '70-75') {
+    // Chutes (analyse fine)
+    if (has(r.chute, 'plusieurs')) {
+      alertes.push('⚠ Chutes MULTIPLES = urgence gériatrique. Consultation médecin/gériatre. Test équilibre (Tinetti, Timed Up and Go).');
+    } else if (has(r.chute, 'Oui')) {
+      alertes.push('⚠ Chute récente — bilan étiologique (cardio, neuro, iatrogène). Prévention secondaire OBLIGATOIRE.');
+    }
+    if (has(r.chute, 'Oui') || r.amenagements === 'Aucun') {
+      produits.push('🏠 Kit anti-chutes : barres appui salle bain (Invacare ~60€), tapis douche antidérapant (~15€), rehausseur WC (~40€), veilleuses LED détection, chaussons Podowell antidérapants.');
+      produits.push('🦴 Vit D3 haute dose IMPÉRATIVE (Uvedose 100 000UI/trimestre) — réduit chutes de 20% (méta-analyses).');
+      actes.push('🚶 Bilan équilibre gériatrique + kiné rééducation équilibre (10 séances remboursées).');
+      orientations.push('🏠 Ergothérapeute à domicile (aménagement) — via MaPrimeAdapt\' (aide financière), APA.');
+    }
+    
+    // Logement
+    if (r.logement_acces === 'Non') {
+      produits.push('🏠 Aménagement : rehausseur WC, siège douche pivotant Vermeiren, barres appui, monte-escalier (MaPrimeAdapt\' + crédit d\'impôt).');
+      orientations.push('🏠 Diagnostic domicile PACT ARIM (adaptation logement).');
+    }
+    
+    // Téléassistance
+    if (r.teleassistance === 'Non' || has(r.teleassistance, 'Je ne sais pas')) {
+      produits.push('📱 Téléassistance : Présence Verte (25€/mois), Filien ADMR (Alésia-Plaisance a des correspondants), détecteur chute inclus. Crédit d\'impôt 50%.');
+      accroches.push('"La téléassistance, c\'est un bouton qu\'on porte, en cas de problème on est en contact immédiat. Beaucoup d\'aînés vivent plus sereinement avec."');
+    }
+    
+    // Appétit / dénutrition
+    if (r.appetit === 'Oui') {
+      alertes.push('⚠ Perte appétit = DÉNUTRITION probable. Peser toutes les semaines. Test MNA-SF (score dénutrition).');
+      produits.push('🥛 CNO remboursés sur ordonnance : Fortimel Compact Protein 125ml, Clinutren 1.5, Delical HP-HC 200ml, Fresubin 2kcal.');
+      accroches.push('"L\'appétit qui baisse, ce n\'est pas normal à votre âge. Perdre du poids sans le vouloir = signal d\'alarme. On peut enrichir vos repas."');
+    }
+    
+    // Amaigrissement + appétit → dénutrition sévère
+    if (r.poids_var === 'Amaigrissement' && r.appetit === 'Oui') {
+      alertes.push('🚨 Dénutrition avérée (amaigrissement + anorexie). Prescription CNO urgente + investigation cause.');
+    }
+    
+    // Perte autonomie
+    if (r.quotidien === 'Oui') {
+      alertes.push('⚠ Difficulté gestes quotidiens = perte autonomie. Évaluation gérontologique. Dossier APA (Conseil départemental 75).');
+      produits.push('🛏 Maintien à domicile (LPPR remboursée) : lit médicalisé, fauteuil coquille, barre appui, alèses, chaise garde-robe.');
+      orientations.push('📋 CLIC Paris 14e (Centre local d\'information et de coordination gérontologique) — dossier APA.');
+    }
+    
+    // Isolement senior
+    if (r.seul === 'Oui' || r.entourage === 'Non') {
+      orientations.push('💚 Isolement senior 14e : Petits Frères des Pauvres, Monalisa, CCAS Mairie 14e, restos sociaux (Emmaüs), portage repas.');
+      accroches.push('"Beaucoup d\'aînés vivent isolés. Il existe des associations qui rendent visite gratuitement. Ça vous dirait ?"');
+    }
+    
+    // Fuites urinaires senior
+    if (r.urinaires === 'Oui') {
+      produits.push('💧 Protections senior : Tena Silhouette Discreet (discret jour), Tena Comfort (nuit), Molicare Slip absorbant maximum, Depend.');
+      produits.push('🧴 Prévention escarres/érythème : Cavilon spray protecteur, Bepanthen crème, Sanyrène acides gras hyperoxygénés (100% LPPR).');
+      if (isHomme) {
+        orientations.push('♂ Bilan urologique : cancer prostate, rétention chronique, mégavessie.');
+      }
+    }
+    
+    // Mémoire senior
+    if (r.memoire === 'Oui') {
+      produits.push('🧠 Mémoire 70+ : Ginkgo (Tanakan sur ordo), oméga 3 EPA/DHA, vit B12 (souvent carencée), phosphatidylsérine.');
+      orientations.push('🧠 Consultation gériatre + MMSE + MoCA. CMRR Broca (14e). Éliminer démence débutante, dépression, iatrogénie.');
+    }
+    
+    // Vue
+    if (r.vue === 'Oui') {
+      produits.push('👀 Vue senior : Ocuvite Lutéine, Nutrof Total (DMLA), larmes Vismed multi, gel Célluvisc nuit, loupe éclairante.');
+      orientations.push('👀 Ophtalmo urgent — cataracte opérable (100%), DMLA, glaucome. 100% Santé lunettes.');
+    }
+    
+    // Audition (isolement !)
+    if (r.audition === 'Oui') {
+      alertes.push('⚠ Baisse audition non appareillée → isolement + facteur risque démence. ORL prioritaire.');
+      orientations.push('👂 Appareillage 100% Santé (0€ à charge). Audioprothésiste à proximité.');
+      produits.push('👂 Cérumen : Audispray, Doc\'Ears, seringue auriculaire.');
+    }
+    
+    // Douleurs
+    if (r.douleurs === 'Oui') {
+      produits.push('🦴 Douleurs senior : Voltarène Emulgel, patchs Voltarène Actigo (24h), Doliprane 1g, chaleur (bouillotte, ceinture chauffante), harpagophytum.');
+      produits.push('💆 Confort : rouleau massage, ceinture lombaire, semelles.');
+    }
+    
+    // Ostéoporose senior
+    if (r.maladies === 'Ostéoporose' || r.maladies === 'Ostéoporose/fractures') {
+      produits.push('🦴 Ostéoporose 70+ : Uvedose 100 000UI/trimestre, Cacit D3, Vit K2 (Menakinox), Structoflex. Bisphosphonates (Fosamax) suivi.');
+      actes.push('🩺 Vérifier ostéodensitométrie (DMO) — remboursée si fracture antérieure ou traitement.');
+    }
+    
+    // Sommeil senior + BZD
+    if (r.sommeil === 'Somnifères') {
+      alertes.push('⚠ BZD chroniques 70+ = risque chute × 3, mémoire, dépendance. Sevrage progressif (protocole HAS déprescription).');
+      produits.push('😴 Alternatives : mélatonine LP Circadin (sur ordo, remboursée 55+), Euphytose Nuit, valériane, magnésium bisglycinate.');
+      orientations.push('😴 Plan sevrage BZD avec médecin (baisse ¼ dose par 2 semaines).');
+    } else if (r.sommeil === 'Oui souvent') {
+      produits.push('😴 Sommeil senior : Circadin (mélatonine LP sur ordo), Euphytose Nuit, valériane.');
+    }
+    
+    // Alimentation senior
+    if (r.laitiers === 'Non') {
+      alertes.push('⚠ Absence produits laitiers → carence calcium (surtout femme). Objectif 1200mg Ca/jour.');
+      produits.push('🦴 Calcium : Cacit 1000, Ostram Vit D3, Calcidose. Compléter alimentation (sardines, amandes).');
+    }
+    if (r.proteines === 'Rarement' || r.proteines === 'Jamais') {
+      alertes.push('⚠ Apport protéique insuffisant → sarcopénie (fonte musculaire), chutes, dénutrition. Objectif 1.2g protéines/kg/jour senior.');
+      produits.push('💪 Sarcopénie : Fortimel Compact Protein, Prot\'Age poudre, HMB (leucine), Whey protein senior.');
+    }
+    
+    // Vaccination : personnalisé si comorbidité
+    if (r.maladies === 'Diabète' && r.grippe === 'Non') {
+      actes.push('💉 Diabète 70+ + grippe non vaccinée = danger. Vaccination immédiate.');
+    }
+    
+    // Tabac 70+ (motivation à préserver)
+    if (r.tabac === 'Oui') {
+      actes.push('🚭 Sevrage même à 70+ : bénéfice cardio dès 6 mois. Substituts remboursés. Ne jamais dire "trop tard".');
+      accroches.push('"Il n\'est jamais trop tard. À 70 ans, arrêter apporte encore 3-4 ans d\'espérance de vie."');
+    }
+    
+    // Retraite négative (deuil)
+    if (r.retraite === 'Plutôt négatif' || r.retraite === 'Très négatif') {
+      orientations.push('🌱 Vécu difficile senior : activités 14e (bibliothèque Georges Brassens, Universités permanentes Paris, mairie 14e), clubs 3e âge, bénévolat.');
+    }
+  }
+  
+  return { alertes, actes, produits, orientations, calculs, accroches };
+}
+
+
+</script>
+</body>
+</html>
